@@ -9,6 +9,6 @@ lint:
 	@gometalinter --disable-all \
 	--enable="goimports" --enable="gofmt" --enable="vet" --enable="deadcode" \
 	--enable="varcheck" --enable="structcheck" --enable="ineffassign" \
-	--exclude="vendor" --exclude="bin" \
+	--exclude="vendor" --exclude="bin" --exclude="protocol/types/pb" \
 	--deadline=100s --sort="path" ./... > lint-report.txt
 	@echo "make lint: end"

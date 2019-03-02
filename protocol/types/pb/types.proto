@@ -1,0 +1,60 @@
+syntax = "proto3";
+package typespb;
+
+// Hash (32 bytes)
+message Hash {
+    fixed64 s0 = 1;
+    fixed64 s1 = 2;
+    fixed64 s2 = 3;
+    fixed64 s3 = 4;
+}
+
+// Block
+message Block {
+    BlockHeader block_header    = 1;
+    repeated    Tx transactions = 2;
+}
+
+// Block Header
+message BlockHeader {
+    Hash   chain_id         = 1;
+    uint64 version          = 2;
+    uint64 height           = 3;
+    uint64 timestamp        = 4;
+    Hash   previous         = 5;
+    Hash   transaction_root = 6;
+    Proof  proof            = 7;
+}
+
+// Block Proof
+message Proof {
+    uint64 target = 1;
+    uint64 nonce  = 2;
+}
+
+// Transaction
+message Tx {
+    message TxIn {
+        message OutPoint {
+            Hash      txid  = 1;
+            uint64    index = 2;
+        }
+        OutPoint previous_out_point = 1;
+        bytes    redeem_script      = 2;
+        bytes    unlock_script      = 3;
+        uint64   sequence           = 4;
+    }
+    message TxOut {
+        uint64 value       = 1;
+        bytes  lock_script = 2;
+    }
+    message Evidence {
+        bytes  digest = 1;
+        bytes  source = 2;
+    }
+    uint64            version   = 1;
+    repeated TxIn     inputs    = 2;
+    repeated TxOut    outputs   = 3;
+    repeated Evidence evidence  = 4;
+    uint64            lock_time = 5;
+}
