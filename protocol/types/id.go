@@ -7,7 +7,7 @@ import (
 )
 
 type Entry interface {
-	BytesForID() []byte
+	bytesForID() []byte
 }
 
 func GetID(e Entry) (hash Hash) {
@@ -21,7 +21,7 @@ func GetID(e Entry) (hash Hash) {
 	}
 
 	h := sha3.New256()
-	b := h.Sum(e.BytesForID())
+	b := h.Sum(e.bytesForID())
 	r := bytes.NewReader(b)
 
 	hash.ReadFrom(r)

@@ -28,3 +28,11 @@ type TxOut struct {
 	Value      uint64
 	LockScript []byte
 }
+
+func (tx *Tx) bytesForID() []byte {
+	return []byte{}
+}
+
+func (tx *Tx) Hash() Hash {
+	return GetID(tx)
+}

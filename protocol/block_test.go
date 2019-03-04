@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/bytom/config"
-	"github.com/bytom/protocol/state"
+	"github.com/clarenous/go-capsule/protocol/state"
 	"github.com/bytom/testutil"
 )
 

@@ -11,7 +11,7 @@ import (
 	"github.com/bytom/event"
 	"github.com/clarenous/go-capsule/protocol/types"
 
-	"github.com/bytom/protocol/state"
+	"github.com/clarenous/go-capsule/protocol/state"
 	"github.com/bytom/testutil"
 )
 

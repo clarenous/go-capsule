@@ -6,8 +6,8 @@ import (
 	"github.com/bytom/errors"
 	"github.com/clarenous/go-capsule/protocol/types"
 
-	"github.com/bytom/protocol/state"
-	"github.com/bytom/protocol/validation"
+	"github.com/clarenous/go-capsule/protocol/state"
+	"github.com/clarenous/go-capsule/protocol/validation"
 )
 
 // ErrBadTx is returned for transactions failing validation
@@ -27,24 +27,24 @@ func (c *Chain) GetTransactionsUtxo(view *state.UtxoViewpoint, txs []*types.Tx) 
 // per-transaction validation results and is consulted before
 // performing full validation.
 func (c *Chain) ValidateTx(tx *types.Tx) (bool, error) {
-	if ok := c.txPool.HaveTransaction(&tx.ID); ok {
-		return false, c.txPool.GetErrCache(&tx.ID)
+	if ok := c.txPool.HaveTransaction(tx.Hash().Ptr()); ok {
+		return false, c.txPool.GetErrCache(tx.Hash().Ptr())
 	}
 
 	if c.txPool.IsDust(tx) {
-		c.txPool.AddErrCache(&tx.ID, ErrDustTx)
+		c.txPool.AddErrCache(tx.Hash().Ptr(), ErrDustTx)
 		return false, ErrDustTx
 	}
 
 	bh := c.BestBlockHeader()
-	gasStatus, err := validation.ValidateTx(tx.Tx, types.MapBlock(&types.Block{BlockHeader: *bh}))
+	gasStatus, err := validation.ValidateTx(tx, &types.Block{BlockHeader: *bh})
 	if !gasStatus.GasValid {
-		c.txPool.AddErrCache(&tx.ID, err)
+		c.txPool.AddErrCache(tx.Hash().Ptr(), err)
 		return false, err
 	}
 
 	if err != nil {
-		log.WithFields(log.Fields{"module": logModule, "tx_id": tx.Tx.ID.String(), "error": err}).Info("transaction status fail")
+		log.WithFields(log.Fields{"module": logModule, "tx_id": tx.Hash().String(), "error": err}).Info("transaction status fail")
 	}
 
 	return c.txPool.ProcessTransaction(tx, err != nil, bh.Height, gasStatus.BTMValue)

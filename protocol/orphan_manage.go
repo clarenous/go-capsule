@@ -62,7 +62,7 @@ func (o *OrphanManage) Add(block *types.Block) {
 	}
 
 	o.orphan[blockHash] = &orphanBlock{block, time.Now().Add(orphanBlockTTL)}
-	o.prevOrphans[block.PreviousBlockHash] = append(o.prevOrphans[block.PreviousBlockHash], &blockHash)
+	o.prevOrphans[block.Previous] = append(o.prevOrphans[block.Previous], &blockHash)
 
 	log.WithFields(log.Fields{"module": logModule, "hash": blockHash.String(), "height": block.Height}).Info("add block to orphan")
 }
@@ -97,15 +97,15 @@ func (o *OrphanManage) delete(hash *types.Hash) {
 	}
 	delete(o.orphan, *hash)
 
-	prevOrphans, ok := o.prevOrphans[block.Block.PreviousBlockHash]
+	prevOrphans, ok := o.prevOrphans[block.Block.Previous]
 	if !ok || len(prevOrphans) == 1 {
-		delete(o.prevOrphans, block.Block.PreviousBlockHash)
+		delete(o.prevOrphans, block.Block.Previous)
 		return
 	}
 
 	for i, preOrphan := range prevOrphans {
 		if preOrphan == hash {
-			o.prevOrphans[block.Block.PreviousBlockHash] = append(prevOrphans[:i], prevOrphans[i+1:]...)
+			o.prevOrphans[block.Block.Previous] = append(prevOrphans[:i], prevOrphans[i+1:]...)
 			return
 		}
 	}

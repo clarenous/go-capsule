@@ -10,7 +10,7 @@ import (
 	"github.com/bytom/errors"
 	"github.com/clarenous/go-capsule/protocol/types"
 
-	"github.com/bytom/protocol/state"
+	"github.com/clarenous/go-capsule/protocol/state"
 )
 
 const logModule = "leveldb"
@@ -68,16 +68,16 @@ func ValidateBlockHeader(b *types.Block, parent *state.BlockNode) error {
 	if b.Height != parent.Height+1 {
 		return errors.WithDetailf(errMisorderedBlockHeight, "previous block height %d, current block height %d", parent.Height, b.Height)
 	}
-	if b.Bits != parent.CalcNextBits() {
+	if b.Proof.Target != parent.CalcNextBits() {
 		return errBadBits
 	}
-	if parent.Hash != *b.PreviousBlockId {
-		return errors.WithDetailf(errMismatchedBlock, "previous block ID %x, current block wants %x", parent.Hash.Bytes(), b.PreviousBlockId.Bytes())
+	if parent.Hash != b.Previous {
+		return errors.WithDetailf(errMismatchedBlock, "previous block ID %x, current block wants %x", parent.Hash.Bytes(), b.Previous.Bytes())
 	}
 	if err := checkBlockTime(b, parent); err != nil {
 		return err
 	}
-	if !difficulty.CheckProofOfWork(&b.ID, parent.CalcNextSeed(), b.BlockHeader.Bits) {
+	if !difficulty.CheckProofOfWork(&b.Hash(), b.Proof.Nonce) {
 		return errWorkProof
 	}
 	return nil
@@ -132,7 +132,7 @@ func ValidateBlock(b *types.Block, parent *state.BlockNode) error {
 	log.WithFields(log.Fields{
 		"module":   logModule,
 		"height":   b.Height,
-		"hash":     b.ID.String(),
+		"hash":     b.Hash().String(),
 		"duration": time.Since(startTime),
 	}).Debug("finish validate block")
 	return nil

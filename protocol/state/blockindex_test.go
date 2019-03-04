@@ -73,14 +73,14 @@ func TestCalcNextBits(t *testing.T) {
 		{
 			currentNode: &BlockNode{
 				Height: 0,
-				Bits:   1000,
+				Target: 1000,
 			},
 			bits: 1000,
 		},
 		{
 			currentNode: &BlockNode{
 				Height: consensus.BlocksPerRetarget - 1,
-				Bits:   1000,
+				Target: 1000,
 			},
 			bits: 1000,
 		},
@@ -91,7 +91,7 @@ func TestCalcNextBits(t *testing.T) {
 			},
 			currentNode: &BlockNode{
 				Height:    consensus.BlocksPerRetarget,
-				Bits:      difficulty.BigToCompact(big.NewInt(1000)),
+				Target:    difficulty.BigToCompact(big.NewInt(1000)),
 				Timestamp: targetTimeSpan,
 			},
 			bits: difficulty.BigToCompact(big.NewInt(1000)),
@@ -103,7 +103,7 @@ func TestCalcNextBits(t *testing.T) {
 			},
 			currentNode: &BlockNode{
 				Height:    consensus.BlocksPerRetarget,
-				Bits:      difficulty.BigToCompact(big.NewInt(1000)),
+				Target:    difficulty.BigToCompact(big.NewInt(1000)),
 				Timestamp: targetTimeSpan * 2,
 			},
 			bits: difficulty.BigToCompact(big.NewInt(2000)),

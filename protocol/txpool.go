@@ -13,7 +13,7 @@ import (
 	"github.com/bytom/event"
 	"github.com/clarenous/go-capsule/protocol/types"
 
-	"github.com/bytom/protocol/state"
+	"github.com/clarenous/go-capsule/protocol/state"
 )
 
 // msg type
@@ -236,7 +236,7 @@ func (tp *TxPool) processTransaction(tx *types.Tx, statusFail bool, height, fee 
 // ProcessTransaction is the main entry for txpool handle new tx, ignore dust tx.
 func (tp *TxPool) ProcessTransaction(tx *types.Tx, statusFail bool, height, fee uint64) (bool, error) {
 	if tp.IsDust(tx) {
-		log.WithFields(log.Fields{"module": logModule, "tx_id": tx.ID.String()}).Warn("dust tx")
+		log.WithFields(log.Fields{"module": logModule, "tx_id": tx.Hash().String()}).Warn("dust tx")
 		return false, nil
 	}
 	return tp.processTransaction(tx, statusFail, height, fee)
@@ -248,12 +248,12 @@ func (tp *TxPool) addOrphan(txD *TxDesc, requireParents []*types.Hash) error {
 	}
 
 	orphan := &orphanTx{txD, time.Now().Add(orphanTTL)}
-	tp.orphans[txD.Tx.ID] = orphan
+	tp.orphans[txD.Tx.Hash()] = orphan
 	for _, hash := range requireParents {
 		if _, ok := tp.orphansByPrev[*hash]; !ok {
 			tp.orphansByPrev[*hash] = make(map[types.Hash]*orphanTx)
 		}
-		tp.orphansByPrev[*hash][txD.Tx.ID] = orphan
+		tp.orphansByPrev[*hash][txD.Tx.Hash()] = orphan
 	}
 	return nil
 }
@@ -265,7 +265,7 @@ func (tp *TxPool) addTransaction(txD *TxDesc) error {
 
 	tx := txD.Tx
 	txD.Added = time.Now()
-	tp.pool[tx.ID] = txD
+	tp.pool[tx.Hash()] = txD
 	for _, id := range tx.ResultIds {
 		output, err := tx.Output(*id)
 		if err != nil {
@@ -279,7 +279,7 @@ func (tp *TxPool) addTransaction(txD *TxDesc) error {
 
 	atomic.StoreInt64(&tp.lastUpdated, time.Now().Unix())
 	tp.eventDispatcher.Post(TxMsgEvent{TxMsg: &TxPoolMsg{TxDesc: txD, MsgType: MsgNewTx}})
-	log.WithFields(log.Fields{"module": logModule, "tx_id": tx.ID.String()}).Debug("Add tx to mempool")
+	log.WithFields(log.Fields{"module": logModule, "tx_id": tx.Hash().String()}).Debug("Add tx to mempool")
 	return nil
 }
 
@@ -332,7 +332,7 @@ func (tp *TxPool) processOrphans(txD *TxDesc) {
 
 		if len(requireParents) == 0 {
 			addRely(processOrphan.Tx)
-			tp.removeOrphan(&processOrphan.Tx.ID)
+			tp.removeOrphan(processOrphan.Tx.Hash().Ptr())
 			tp.addTransaction(processOrphan.TxDesc)
 		}
 	}

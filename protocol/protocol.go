@@ -9,7 +9,7 @@ import (
 	"github.com/bytom/errors"
 	"github.com/clarenous/go-capsule/protocol/types"
 
-	"github.com/bytom/protocol/state"
+	"github.com/clarenous/go-capsule/protocol/state"
 )
 
 const maxProcessBlockChSize = 1024
@@ -69,8 +69,8 @@ func (c *Chain) initChainStatus() error {
 	}
 
 	utxoView := state.NewUtxoViewpoint()
-	bcBlock := types.MapBlock(genesisBlock)
-	if err := utxoView.ApplyBlock(bcBlock, txStatus); err != nil {
+	block := genesisBlock
+	if err := utxoView.ApplyBlock(block, txStatus); err != nil {
 		return err
 	}
 
@@ -104,15 +104,6 @@ func (c *Chain) BestBlockHeader() *types.BlockHeader {
 // InMainChain checks wheather a block is in the main chain
 func (c *Chain) InMainChain(hash types.Hash) bool {
 	return c.index.InMainchain(hash)
-}
-
-// CalcNextSeed return the seed for the given block
-func (c *Chain) CalcNextSeed(preBlock *types.Hash) (*types.Hash, error) {
-	node := c.index.GetNode(preBlock)
-	if node == nil {
-		return nil, errors.New("can't find preblock in the blockindex")
-	}
-	return node.CalcNextSeed(), nil
 }
 
 // CalcNextBits return the seed for the given block

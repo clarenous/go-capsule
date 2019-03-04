@@ -4,7 +4,7 @@ import (
 	"github.com/bytom/database/storage"
 	"github.com/clarenous/go-capsule/protocol/types"
 
-	"github.com/bytom/protocol/state"
+	"github.com/clarenous/go-capsule/protocol/state"
 )
 
 // Store provides storage interface for blockchain data

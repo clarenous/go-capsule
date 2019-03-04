@@ -7,8 +7,8 @@ import (
 	"github.com/bytom/errors"
 	"github.com/clarenous/go-capsule/protocol/types"
 
-	"github.com/bytom/protocol/state"
-	"github.com/bytom/protocol/validation"
+	"github.com/clarenous/go-capsule/protocol/state"
+	"github.com/clarenous/go-capsule/protocol/validation"
 )
 
 var (
@@ -75,26 +75,25 @@ func (c *Chain) calcReorganizeNodes(node *state.BlockNode) ([]*state.BlockNode, 
 }
 
 func (c *Chain) connectBlock(block *types.Block) (err error) {
-	bcBlock := types.MapBlock(block)
-	if bcBlock.TransactionStatus, err = c.store.GetTransactionStatus(&bcBlock.ID); err != nil {
+	if block.TransactionStatus, err = c.store.GetTransactionStatus(block.Hash().Ptr()); err != nil {
 		return err
 	}
 
 	utxoView := state.NewUtxoViewpoint()
-	if err := c.store.GetTransactionsUtxo(utxoView, bcBlock.Transactions); err != nil {
+	if err := c.store.GetTransactionsUtxo(utxoView, block.Transactions); err != nil {
 		return err
 	}
-	if err := utxoView.ApplyBlock(bcBlock, bcBlock.TransactionStatus); err != nil {
+	if err := utxoView.ApplyBlock(block, block.TransactionStatus); err != nil {
 		return err
 	}
 
-	node := c.index.GetNode(&bcBlock.ID)
+	node := c.index.GetNode(block.Hash().Ptr())
 	if err := c.setState(node, utxoView); err != nil {
 		return err
 	}
 
 	for _, tx := range block.Transactions {
-		c.txPool.RemoveTransaction(&tx.Tx.ID)
+		c.txPool.RemoveTransaction(tx.Hash().Ptr())
 	}
 	return nil
 }
@@ -109,11 +108,11 @@ func (c *Chain) reorganizeChain(node *state.BlockNode) error {
 			return err
 		}
 
-		detachBlock := types.MapBlock(b)
+		detachBlock := b
 		if err := c.store.GetTransactionsUtxo(utxoView, detachBlock.Transactions); err != nil {
 			return err
 		}
-		txStatus, err := c.GetTransactionStatus(&detachBlock.ID)
+		txStatus, err := c.GetTransactionStatus(detachBlock.Hash().Ptr())
 		if err != nil {
 			return err
 		}
@@ -130,11 +129,11 @@ func (c *Chain) reorganizeChain(node *state.BlockNode) error {
 			return err
 		}
 
-		attachBlock := types.MapBlock(b)
+		attachBlock := b
 		if err := c.store.GetTransactionsUtxo(utxoView, attachBlock.Transactions); err != nil {
 			return err
 		}
-		txStatus, err := c.GetTransactionStatus(&attachBlock.ID)
+		txStatus, err := c.GetTransactionStatus(attachBlock.Hash().Ptr())
 		if err != nil {
 			return err
 		}
@@ -150,17 +149,16 @@ func (c *Chain) reorganizeChain(node *state.BlockNode) error {
 
 // SaveBlock will validate and save block into storage
 func (c *Chain) saveBlock(block *types.Block) error {
-	bcBlock := types.MapBlock(block)
-	parent := c.index.GetNode(&block.PreviousBlockHash)
+	parent := c.index.GetNode(&block.Previous)
 
-	if err := validation.ValidateBlock(bcBlock, parent); err != nil {
+	if err := validation.ValidateBlock(block, parent); err != nil {
 		return errors.Sub(ErrBadBlock, err)
 	}
-	if err := c.store.SaveBlock(block, bcBlock.TransactionStatus); err != nil {
+	if err := c.store.SaveBlock(block, block.TransactionStatus); err != nil {
 		return err
 	}
 
-	c.orphanManage.Delete(&bcBlock.ID)
+	c.orphanManage.Delete(block.Hash().Ptr())
 	node, err := state.NewBlockNode(&block.BlockHeader, parent)
 	if err != nil {
 		return err
@@ -229,7 +227,7 @@ func (c *Chain) processBlock(block *types.Block) (bool, error) {
 		return c.orphanManage.BlockExist(&blockHash), nil
 	}
 
-	if parent := c.index.GetNode(&block.PreviousBlockHash); parent == nil {
+	if parent := c.index.GetNode(&block.Previous); parent == nil {
 		c.orphanManage.Add(block)
 		return true, nil
 	}

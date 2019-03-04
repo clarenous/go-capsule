@@ -2,7 +2,7 @@ package types
 
 // Block
 type Block struct {
-	BlockHeader  *BlockHeader
+	BlockHeader
 	Transactions []*Tx
 }
 
@@ -23,6 +23,10 @@ type BlockProof struct {
 	Nonce  uint64
 }
 
-func (blk *Block) BytesForID() []byte {
+func (bh *BlockHeader) bytesForID() []byte {
 	return []byte{}
+}
+
+func (bh *BlockHeader) Hash() Hash {
+	return GetID(bh)
 }

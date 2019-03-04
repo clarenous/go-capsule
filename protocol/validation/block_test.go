@@ -9,7 +9,7 @@ import (
 	"github.com/bytom/mining/tensority"
 	"github.com/clarenous/go-capsule/protocol/types"
 
-	"github.com/bytom/protocol/state"
+	"github.com/clarenous/go-capsule/protocol/state"
 	"github.com/bytom/protocol/vm"
 	"github.com/bytom/protocol/vm/vmutil"
 	"github.com/bytom/testutil"
@@ -148,7 +148,7 @@ func TestValidateBlockHeader(t *testing.T) {
 			parent: &state.BlockNode{
 				Version: 1,
 				Height:  19,
-				Bits:    2305843009214532812,
+				Target:  2305843009214532812,
 			},
 			err: errBadBits,
 		},
@@ -184,7 +184,7 @@ func TestValidateBlockHeader(t *testing.T) {
 				Timestamp: 1523352600,
 				Hash:      types.Hash{V0: 0},
 				Seed:      &types.Hash{V1: 1},
-				Bits:      2305843009214532812,
+				Target:    2305843009214532812,
 			},
 			err: errWorkProof,
 		},
@@ -205,7 +205,7 @@ func TestValidateBlockHeader(t *testing.T) {
 				Timestamp: 1523352600,
 				Hash:      types.Hash{V0: 0},
 				Seed:      &types.Hash{V1: 1},
-				Bits:      2305843009214532812,
+				Target:    2305843009214532812,
 			},
 			err: nil,
 		},
@@ -295,7 +295,7 @@ func TestValidateBlock(t *testing.T) {
 				Timestamp: 1523352600,
 				Hash:      types.Hash{V0: 0},
 				Seed:      &types.Hash{V1: 1},
-				Bits:      2305843009214532812,
+				Target:    2305843009214532812,
 			},
 			err: errMismatchedMerkleRoot,
 		},
@@ -327,7 +327,7 @@ func TestValidateBlock(t *testing.T) {
 				Timestamp: 1523352600,
 				Hash:      types.Hash{V0: 0},
 				Seed:      &types.Hash{V1: 1},
-				Bits:      2305843009214532812,
+				Target:    2305843009214532812,
 			},
 			err: errMismatchedMerkleRoot,
 		},
@@ -363,7 +363,7 @@ func TestValidateBlock(t *testing.T) {
 				Timestamp: 1523352600,
 				Hash:      types.Hash{V0: 0},
 				Seed:      &types.Hash{V1: 1},
-				Bits:      2305843009214532812,
+				Target:    2305843009214532812,
 			},
 			err: ErrWrongCoinbaseTransaction,
 		},
@@ -388,7 +388,7 @@ func TestGasOverBlockLimit(t *testing.T) {
 		Timestamp: 1523352600,
 		Hash:      types.Hash{V0: 0},
 		Seed:      &types.Hash{V1: 1},
-		Bits:      2305843009214532812,
+		Target:    2305843009214532812,
 	}
 	block := &types.Block{
 		ID: types.Hash{V0: 1},
@@ -439,7 +439,7 @@ func TestSetTransactionStatus(t *testing.T) {
 		Timestamp: 1523352600,
 		Hash:      types.Hash{V0: 0},
 		Seed:      &types.Hash{V1: 1},
-		Bits:      2305843009214532812,
+		Target:    2305843009214532812,
 	}
 	block := &types.Block{
 		ID: types.Hash{V0: 1},
