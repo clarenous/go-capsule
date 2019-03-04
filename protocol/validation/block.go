@@ -15,6 +15,8 @@ import (
 
 const logModule = "leveldb"
 
+const BlockVersion = 1
+
 var (
 	errBadTimestamp          = errors.New("block timestamp is not in the valid range")
 	errBadBits               = errors.New("block bits is invalid")
@@ -60,8 +62,8 @@ func checkCoinbaseAmount(b *bc.Block, amount uint64) error {
 
 // ValidateBlockHeader check the block's header
 func ValidateBlockHeader(b *bc.Block, parent *state.BlockNode) error {
-	if b.Version < parent.Version {
-		return errors.WithDetailf(errVersionRegression, "previous block verson %d, current block version %d", parent.Version, b.Version)
+	if b.Version < BlockVersion {
+		return errors.WithDetailf(errVersionRegression, "previous block version %d, current block version %d", parent.Version, b.Version)
 	}
 	if b.Height != parent.Height+1 {
 		return errors.WithDetailf(errMisorderedBlockHeight, "previous block height %d, current block height %d", parent.Height, b.Height)
