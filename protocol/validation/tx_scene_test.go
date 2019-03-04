@@ -8,8 +8,8 @@ import (
 	"github.com/clarenous/go-capsule/consensus"
 	"github.com/clarenous/go-capsule/protocol/types"
 
-	"github.com/bytom/protocol/vm"
-	"github.com/bytom/protocol/vm/vmutil"
+	"github.com/clarenous/go-capsule/protocol/txscript"
+	"github.com/clarenous/go-capsule/protocol/txscript/vmutil"
 )
 
 func TestValidateTx(t *testing.T) {

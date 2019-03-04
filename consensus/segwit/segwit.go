@@ -4,8 +4,8 @@ import (
 	"errors"
 
 	"github.com/clarenous/go-capsule/consensus"
-	"github.com/bytom/protocol/vm"
-	"github.com/bytom/protocol/vm/vmutil"
+	"github.com/clarenous/go-capsule/protocol/txscript"
+	"github.com/clarenous/go-capsule/protocol/txscript/vmutil"
 )
 
 func IsP2WScript(prog []byte) bool {

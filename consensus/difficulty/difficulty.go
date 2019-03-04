@@ -4,7 +4,7 @@ import (
 	"math/big"
 
 	"github.com/clarenous/go-capsule/consensus"
-	"github.com/bytom/mining/tensority"
+	"github.com/clarenous/go-capsule/mining/pow"
 
 	"github.com/clarenous/go-capsule/protocol/types"
 )
@@ -118,7 +118,7 @@ func BigToCompact(n *big.Int) uint64 {
 
 // CheckProofOfWork checks whether the hash is valid for a given difficulty.
 func CheckProofOfWork(hash, seed *types.Hash, bits uint64) bool {
-	compareHash := tensority.AIHash.Hash(hash, seed)
+	compareHash := pow.AIHash.Hash(hash, seed)
 	return HashToBig(compareHash).Cmp(CompactToBig(bits)) <= 0
 }
 

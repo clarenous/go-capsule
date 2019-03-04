@@ -1,6 +1,6 @@
 package scrypt
 
-// Smix create tensority cache
+// Smix create pow cache
 // Some value is fixed: r = 1, N = 1024.
 func Smix(b []byte, v []uint32) {
 	xy := make([]uint32, 64)

@@ -9,7 +9,7 @@ import (
 	"github.com/clarenous/go-capsule/errors"
 	"github.com/clarenous/go-capsule/math/checked"
 	"github.com/clarenous/go-capsule/protocol/types"
-	"github.com/bytom/protocol/vm"
+	"github.com/clarenous/go-capsule/protocol/txscript"
 )
 
 const ruleAA = 142500

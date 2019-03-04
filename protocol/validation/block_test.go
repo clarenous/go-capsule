@@ -6,12 +6,12 @@ import (
 	"time"
 
 	"github.com/clarenous/go-capsule/consensus"
-	"github.com/bytom/mining/tensority"
+	"github.com/clarenous/go-capsule/mining/pow"
 	"github.com/clarenous/go-capsule/protocol/types"
 
 	"github.com/clarenous/go-capsule/protocol/state"
-	"github.com/bytom/protocol/vm"
-	"github.com/bytom/protocol/vm/vmutil"
+	"github.com/clarenous/go-capsule/protocol/txscript"
+	"github.com/clarenous/go-capsule/protocol/txscript/vmutil"
 	"github.com/clarenous/go-capsule/testutil"
 )
 
@@ -110,7 +110,7 @@ func TestCheckCoinbaseAmount(t *testing.T) {
 }
 
 func TestValidateBlockHeader(t *testing.T) {
-	iniTtensority()
+	iniTPoW()
 
 	cases := []struct {
 		desc   string
@@ -259,7 +259,7 @@ func TestValidateBlockHeader(t *testing.T) {
 
 // TestValidateBlock test the ValidateBlock function
 func TestValidateBlock(t *testing.T) {
-	iniTtensority()
+	iniTPoW()
 
 	cp, _ := vmutil.DefaultCoinbaseProgram()
 	cases := []struct {
@@ -379,7 +379,7 @@ func TestValidateBlock(t *testing.T) {
 
 // TestGasOverBlockLimit check if the gas of the block has the max limit (blocktest#1012)
 func TestGasOverBlockLimit(t *testing.T) {
-	iniTtensority()
+	iniTPoW()
 
 	cp, _ := vmutil.DefaultCoinbaseProgram()
 	parent := &state.BlockNode{
@@ -430,7 +430,7 @@ func TestGasOverBlockLimit(t *testing.T) {
 
 // TestSetTransactionStatus verify the transaction status is set correctly (blocktest#1010)
 func TestSetTransactionStatus(t *testing.T) {
-	iniTtensority()
+	iniTPoW()
 
 	cp, _ := vmutil.DefaultCoinbaseProgram()
 	parent := &state.BlockNode{
@@ -501,10 +501,10 @@ func TestSetTransactionStatus(t *testing.T) {
 	}
 }
 
-func iniTtensority() {
-	// add (hash, seed) --> (tensority hash) to the  tensority cache for avoid
+func iniTPoW() {
+	// add (hash, seed) --> (pow hash) to the  pow cache for avoid
 	// real matrix calculate cost.
-	tensority.AIHash.AddCache(&types.Hash{V0: 0}, &types.Hash{}, testutil.MaxHash)
-	tensority.AIHash.AddCache(&types.Hash{V0: 1}, &types.Hash{}, testutil.MinHash)
-	tensority.AIHash.AddCache(&types.Hash{V0: 1}, consensus.InitialSeed, testutil.MinHash)
+	pow.AIHash.AddCache(&types.Hash{V0: 0}, &types.Hash{}, testutil.MaxHash)
+	pow.AIHash.AddCache(&types.Hash{V0: 1}, &types.Hash{}, testutil.MinHash)
+	pow.AIHash.AddCache(&types.Hash{V0: 1}, consensus.InitialSeed, testutil.MinHash)
 }
