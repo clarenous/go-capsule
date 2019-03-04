@@ -22,3 +22,7 @@ type BlockProof struct {
 	Target uint64
 	Nonce  uint64
 }
+
+func (blk *Block) BytesForID() []byte {
+	return []byte{}
+}
