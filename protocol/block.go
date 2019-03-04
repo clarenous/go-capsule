@@ -1,11 +1,12 @@
 package protocol
 
 import (
+
 	log "github.com/sirupsen/logrus"
 
 	"github.com/bytom/errors"
-	"github.com/bytom/protocol/bc"
-	"github.com/bytom/protocol/bc/types"
+	"github.com/clarenous/go-capsule/protocol/types"
+
 	"github.com/bytom/protocol/state"
 	"github.com/bytom/protocol/validation"
 )
@@ -19,12 +20,12 @@ var (
 )
 
 // BlockExist check is a block in chain or orphan
-func (c *Chain) BlockExist(hash *bc.Hash) bool {
+func (c *Chain) BlockExist(hash *types.Hash) bool {
 	return c.index.BlockExist(hash) || c.orphanManage.BlockExist(hash)
 }
 
 // GetBlockByHash return a block by given hash
-func (c *Chain) GetBlockByHash(hash *bc.Hash) (*types.Block, error) {
+func (c *Chain) GetBlockByHash(hash *types.Hash) (*types.Block, error) {
 	return c.store.GetBlock(hash)
 }
 
@@ -38,7 +39,7 @@ func (c *Chain) GetBlockByHeight(height uint64) (*types.Block, error) {
 }
 
 // GetHeaderByHash return a block header by given hash
-func (c *Chain) GetHeaderByHash(hash *bc.Hash) (*types.BlockHeader, error) {
+func (c *Chain) GetHeaderByHash(hash *types.Hash) (*types.BlockHeader, error) {
 	node := c.index.GetNode(hash)
 	if node == nil {
 		return nil, errors.New("can't find block header in given hash")

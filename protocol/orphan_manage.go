@@ -6,8 +6,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/bytom/protocol/bc"
-	"github.com/bytom/protocol/bc/types"
+	"github.com/clarenous/go-capsule/protocol/types"
 )
 
 var (
@@ -23,16 +22,16 @@ type orphanBlock struct {
 
 // OrphanManage is use to handle all the orphan block
 type OrphanManage struct {
-	orphan      map[bc.Hash]*orphanBlock
-	prevOrphans map[bc.Hash][]*bc.Hash
+	orphan      map[types.Hash]*orphanBlock
+	prevOrphans map[types.Hash][]*types.Hash
 	mtx         sync.RWMutex
 }
 
 // NewOrphanManage return a new orphan block
 func NewOrphanManage() *OrphanManage {
 	o := &OrphanManage{
-		orphan:      make(map[bc.Hash]*orphanBlock),
-		prevOrphans: make(map[bc.Hash][]*bc.Hash),
+		orphan:      make(map[types.Hash]*orphanBlock),
+		prevOrphans: make(map[types.Hash][]*types.Hash),
 	}
 
 	go o.orphanExpireWorker()
@@ -40,7 +39,7 @@ func NewOrphanManage() *OrphanManage {
 }
 
 // BlockExist check is the block in OrphanManage
-func (o *OrphanManage) BlockExist(hash *bc.Hash) bool {
+func (o *OrphanManage) BlockExist(hash *types.Hash) bool {
 	o.mtx.RLock()
 	_, ok := o.orphan[*hash]
 	o.mtx.RUnlock()
@@ -69,14 +68,14 @@ func (o *OrphanManage) Add(block *types.Block) {
 }
 
 // Delete will delete the block from OrphanManage
-func (o *OrphanManage) Delete(hash *bc.Hash) {
+func (o *OrphanManage) Delete(hash *types.Hash) {
 	o.mtx.Lock()
 	defer o.mtx.Unlock()
 	o.delete(hash)
 }
 
 // Get return the orphan block by hash
-func (o *OrphanManage) Get(hash *bc.Hash) (*types.Block, bool) {
+func (o *OrphanManage) Get(hash *types.Hash) (*types.Block, bool) {
 	o.mtx.RLock()
 	block, ok := o.orphan[*hash]
 	o.mtx.RUnlock()
@@ -84,14 +83,14 @@ func (o *OrphanManage) Get(hash *bc.Hash) (*types.Block, bool) {
 }
 
 // GetPrevOrphans return the list of child orphans
-func (o *OrphanManage) GetPrevOrphans(hash *bc.Hash) ([]*bc.Hash, bool) {
+func (o *OrphanManage) GetPrevOrphans(hash *types.Hash) ([]*types.Hash, bool) {
 	o.mtx.RLock()
 	prevOrphans, ok := o.prevOrphans[*hash]
 	o.mtx.RUnlock()
 	return prevOrphans, ok
 }
 
-func (o *OrphanManage) delete(hash *bc.Hash) {
+func (o *OrphanManage) delete(hash *types.Hash) {
 	block, ok := o.orphan[*hash]
 	if !ok {
 		return

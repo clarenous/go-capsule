@@ -4,27 +4,27 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bytom/protocol/bc"
-	"github.com/bytom/protocol/bc/types"
+	"github.com/clarenous/go-capsule/protocol/types"
+
 	"github.com/bytom/testutil"
 )
 
 var testBlocks = []*types.Block{
 	&types.Block{BlockHeader: types.BlockHeader{
-		PreviousBlockHash: bc.Hash{V0: 1},
+		PreviousBlockHash: types.Hash{V0: 1},
 		Nonce:             0,
 	}},
 	&types.Block{BlockHeader: types.BlockHeader{
-		PreviousBlockHash: bc.Hash{V0: 1},
+		PreviousBlockHash: types.Hash{V0: 1},
 		Nonce:             1,
 	}},
 	&types.Block{BlockHeader: types.BlockHeader{
-		PreviousBlockHash: bc.Hash{V0: 2},
+		PreviousBlockHash: types.Hash{V0: 2},
 		Nonce:             3,
 	}},
 }
 
-var blockHashes = []bc.Hash{}
+var blockHashes = []types.Hash{}
 
 func init() {
 	for _, block := range testBlocks {
@@ -40,75 +40,75 @@ func TestOrphanManageAdd(t *testing.T) {
 	}{
 		{
 			before: &OrphanManage{
-				orphan:      map[bc.Hash]*orphanBlock{},
-				prevOrphans: map[bc.Hash][]*bc.Hash{},
+				orphan:      map[types.Hash]*orphanBlock{},
+				prevOrphans: map[types.Hash][]*types.Hash{},
 			},
 			after: &OrphanManage{
-				orphan: map[bc.Hash]*orphanBlock{
+				orphan: map[types.Hash]*orphanBlock{
 					blockHashes[0]: &orphanBlock{testBlocks[0], time.Time{}},
 				},
-				prevOrphans: map[bc.Hash][]*bc.Hash{
-					bc.Hash{V0: 1}: []*bc.Hash{&blockHashes[0]},
+				prevOrphans: map[types.Hash][]*types.Hash{
+					types.Hash{V0: 1}: []*types.Hash{&blockHashes[0]},
 				},
 			},
 			addOrphan: testBlocks[0],
 		},
 		{
 			before: &OrphanManage{
-				orphan: map[bc.Hash]*orphanBlock{
+				orphan: map[types.Hash]*orphanBlock{
 					blockHashes[0]: &orphanBlock{testBlocks[0], time.Time{}},
 				},
-				prevOrphans: map[bc.Hash][]*bc.Hash{
-					bc.Hash{V0: 1}: []*bc.Hash{&blockHashes[0]},
+				prevOrphans: map[types.Hash][]*types.Hash{
+					types.Hash{V0: 1}: []*types.Hash{&blockHashes[0]},
 				},
 			},
 			after: &OrphanManage{
-				orphan: map[bc.Hash]*orphanBlock{
+				orphan: map[types.Hash]*orphanBlock{
 					blockHashes[0]: &orphanBlock{testBlocks[0], time.Time{}},
 				},
-				prevOrphans: map[bc.Hash][]*bc.Hash{
-					bc.Hash{V0: 1}: []*bc.Hash{&blockHashes[0]},
+				prevOrphans: map[types.Hash][]*types.Hash{
+					types.Hash{V0: 1}: []*types.Hash{&blockHashes[0]},
 				},
 			},
 			addOrphan: testBlocks[0],
 		},
 		{
 			before: &OrphanManage{
-				orphan: map[bc.Hash]*orphanBlock{
+				orphan: map[types.Hash]*orphanBlock{
 					blockHashes[0]: &orphanBlock{testBlocks[0], time.Time{}},
 				},
-				prevOrphans: map[bc.Hash][]*bc.Hash{
-					bc.Hash{V0: 1}: []*bc.Hash{&blockHashes[0]},
+				prevOrphans: map[types.Hash][]*types.Hash{
+					types.Hash{V0: 1}: []*types.Hash{&blockHashes[0]},
 				},
 			},
 			after: &OrphanManage{
-				orphan: map[bc.Hash]*orphanBlock{
+				orphan: map[types.Hash]*orphanBlock{
 					blockHashes[0]: &orphanBlock{testBlocks[0], time.Time{}},
 					blockHashes[1]: &orphanBlock{testBlocks[1], time.Time{}},
 				},
-				prevOrphans: map[bc.Hash][]*bc.Hash{
-					bc.Hash{V0: 1}: []*bc.Hash{&blockHashes[0], &blockHashes[1]},
+				prevOrphans: map[types.Hash][]*types.Hash{
+					types.Hash{V0: 1}: []*types.Hash{&blockHashes[0], &blockHashes[1]},
 				},
 			},
 			addOrphan: testBlocks[1],
 		},
 		{
 			before: &OrphanManage{
-				orphan: map[bc.Hash]*orphanBlock{
+				orphan: map[types.Hash]*orphanBlock{
 					blockHashes[0]: &orphanBlock{testBlocks[0], time.Time{}},
 				},
-				prevOrphans: map[bc.Hash][]*bc.Hash{
-					bc.Hash{V0: 1}: []*bc.Hash{&blockHashes[0]},
+				prevOrphans: map[types.Hash][]*types.Hash{
+					types.Hash{V0: 1}: []*types.Hash{&blockHashes[0]},
 				},
 			},
 			after: &OrphanManage{
-				orphan: map[bc.Hash]*orphanBlock{
+				orphan: map[types.Hash]*orphanBlock{
 					blockHashes[0]: &orphanBlock{testBlocks[0], time.Time{}},
 					blockHashes[2]: &orphanBlock{testBlocks[2], time.Time{}},
 				},
-				prevOrphans: map[bc.Hash][]*bc.Hash{
-					bc.Hash{V0: 1}: []*bc.Hash{&blockHashes[0]},
-					bc.Hash{V0: 2}: []*bc.Hash{&blockHashes[2]},
+				prevOrphans: map[types.Hash][]*types.Hash{
+					types.Hash{V0: 1}: []*types.Hash{&blockHashes[0]},
+					types.Hash{V0: 2}: []*types.Hash{&blockHashes[2]},
 				},
 			},
 			addOrphan: testBlocks[2],
@@ -130,58 +130,58 @@ func TestOrphanManageDelete(t *testing.T) {
 	cases := []struct {
 		before *OrphanManage
 		after  *OrphanManage
-		remove *bc.Hash
+		remove *types.Hash
 	}{
 		{
 			before: &OrphanManage{
-				orphan: map[bc.Hash]*orphanBlock{
+				orphan: map[types.Hash]*orphanBlock{
 					blockHashes[0]: &orphanBlock{testBlocks[0], time.Time{}},
 				},
-				prevOrphans: map[bc.Hash][]*bc.Hash{
-					bc.Hash{V0: 1}: []*bc.Hash{&blockHashes[0]},
+				prevOrphans: map[types.Hash][]*types.Hash{
+					types.Hash{V0: 1}: []*types.Hash{&blockHashes[0]},
 				},
 			},
 			after: &OrphanManage{
-				orphan: map[bc.Hash]*orphanBlock{
+				orphan: map[types.Hash]*orphanBlock{
 					blockHashes[0]: &orphanBlock{testBlocks[0], time.Time{}},
 				},
-				prevOrphans: map[bc.Hash][]*bc.Hash{
-					bc.Hash{V0: 1}: []*bc.Hash{&blockHashes[0]},
+				prevOrphans: map[types.Hash][]*types.Hash{
+					types.Hash{V0: 1}: []*types.Hash{&blockHashes[0]},
 				},
 			},
 			remove: &blockHashes[1],
 		},
 		{
 			before: &OrphanManage{
-				orphan: map[bc.Hash]*orphanBlock{
+				orphan: map[types.Hash]*orphanBlock{
 					blockHashes[0]: &orphanBlock{testBlocks[0], time.Time{}},
 				},
-				prevOrphans: map[bc.Hash][]*bc.Hash{
-					bc.Hash{V0: 1}: []*bc.Hash{&blockHashes[0]},
+				prevOrphans: map[types.Hash][]*types.Hash{
+					types.Hash{V0: 1}: []*types.Hash{&blockHashes[0]},
 				},
 			},
 			after: &OrphanManage{
-				orphan:      map[bc.Hash]*orphanBlock{},
-				prevOrphans: map[bc.Hash][]*bc.Hash{},
+				orphan:      map[types.Hash]*orphanBlock{},
+				prevOrphans: map[types.Hash][]*types.Hash{},
 			},
 			remove: &blockHashes[0],
 		},
 		{
 			before: &OrphanManage{
-				orphan: map[bc.Hash]*orphanBlock{
+				orphan: map[types.Hash]*orphanBlock{
 					blockHashes[0]: &orphanBlock{testBlocks[0], time.Time{}},
 					blockHashes[1]: &orphanBlock{testBlocks[1], time.Time{}},
 				},
-				prevOrphans: map[bc.Hash][]*bc.Hash{
-					bc.Hash{V0: 1}: []*bc.Hash{&blockHashes[0], &blockHashes[1]},
+				prevOrphans: map[types.Hash][]*types.Hash{
+					types.Hash{V0: 1}: []*types.Hash{&blockHashes[0], &blockHashes[1]},
 				},
 			},
 			after: &OrphanManage{
-				orphan: map[bc.Hash]*orphanBlock{
+				orphan: map[types.Hash]*orphanBlock{
 					blockHashes[0]: &orphanBlock{testBlocks[0], time.Time{}},
 				},
-				prevOrphans: map[bc.Hash][]*bc.Hash{
-					bc.Hash{V0: 1}: []*bc.Hash{&blockHashes[0]},
+				prevOrphans: map[types.Hash][]*types.Hash{
+					types.Hash{V0: 1}: []*types.Hash{&blockHashes[0]},
 				},
 			},
 			remove: &blockHashes[1],
@@ -203,42 +203,42 @@ func TestOrphanManageExpire(t *testing.T) {
 	}{
 		{
 			before: &OrphanManage{
-				orphan: map[bc.Hash]*orphanBlock{
+				orphan: map[types.Hash]*orphanBlock{
 					blockHashes[0]: &orphanBlock{
 						testBlocks[0],
 						time.Unix(1633479700, 0),
 					},
 				},
-				prevOrphans: map[bc.Hash][]*bc.Hash{
-					bc.Hash{V0: 1}: []*bc.Hash{&blockHashes[0]},
+				prevOrphans: map[types.Hash][]*types.Hash{
+					types.Hash{V0: 1}: []*types.Hash{&blockHashes[0]},
 				},
 			},
 			after: &OrphanManage{
-				orphan:      map[bc.Hash]*orphanBlock{},
-				prevOrphans: map[bc.Hash][]*bc.Hash{},
+				orphan:      map[types.Hash]*orphanBlock{},
+				prevOrphans: map[types.Hash][]*types.Hash{},
 			},
 		},
 		{
 			before: &OrphanManage{
-				orphan: map[bc.Hash]*orphanBlock{
+				orphan: map[types.Hash]*orphanBlock{
 					blockHashes[0]: &orphanBlock{
 						testBlocks[0],
 						time.Unix(1633479702, 0),
 					},
 				},
-				prevOrphans: map[bc.Hash][]*bc.Hash{
-					bc.Hash{V0: 1}: []*bc.Hash{&blockHashes[0]},
+				prevOrphans: map[types.Hash][]*types.Hash{
+					types.Hash{V0: 1}: []*types.Hash{&blockHashes[0]},
 				},
 			},
 			after: &OrphanManage{
-				orphan: map[bc.Hash]*orphanBlock{
+				orphan: map[types.Hash]*orphanBlock{
 					blockHashes[0]: &orphanBlock{
 						testBlocks[0],
 						time.Unix(1633479702, 0),
 					},
 				},
-				prevOrphans: map[bc.Hash][]*bc.Hash{
-					bc.Hash{V0: 1}: []*bc.Hash{&blockHashes[0]},
+				prevOrphans: map[types.Hash][]*types.Hash{
+					types.Hash{V0: 1}: []*types.Hash{&blockHashes[0]},
 				},
 			},
 		},
@@ -277,8 +277,8 @@ func TestOrphanManageNumLimit(t *testing.T) {
 
 	for i, c := range cases {
 		orphanManage := &OrphanManage{
-			orphan:      map[bc.Hash]*orphanBlock{},
-			prevOrphans: map[bc.Hash][]*bc.Hash{},
+			orphan:      map[types.Hash]*orphanBlock{},
+			prevOrphans: map[types.Hash][]*types.Hash{},
 		}
 		for num := 0; num < c.addOrphanBlockNum; num++ {
 			orphanManage.Add(&types.Block{BlockHeader: types.BlockHeader{Height: uint64(num)}})

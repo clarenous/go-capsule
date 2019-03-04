@@ -9,8 +9,8 @@ import (
 	"github.com/bytom/consensus"
 	"github.com/bytom/crypto/sha3pool"
 	"github.com/bytom/errors"
-	"github.com/bytom/protocol/bc"
-	"github.com/bytom/protocol/bc/types"
+	"github.com/clarenous/go-capsule/protocol/types"
+
 	"github.com/bytom/protocol/vm"
 	"github.com/bytom/protocol/vm/vmutil"
 	"github.com/bytom/testutil"
@@ -193,9 +193,9 @@ func TestGasStatus(t *testing.T) {
 }
 
 func TestOverflow(t *testing.T) {
-	sourceID := &bc.Hash{V0: 9999}
+	sourceID := &types.Hash{V0: 9999}
 	ctrlProgram := []byte{byte(vm.OP_TRUE)}
-	newTx := func(inputs []uint64, outputs []uint64) *bc.Tx {
+	newTx := func(inputs []uint64, outputs []uint64) *types.Tx {
 		txInputs := make([]*types.TxInput, 0, len(inputs))
 		txOutputs := make([]*types.TxOutput, 0, len(outputs))
 
@@ -281,38 +281,38 @@ func TestOverflow(t *testing.T) {
 
 func TestTxValidation(t *testing.T) {
 	var (
-		tx      *bc.Tx
+		tx      *types.Tx
 		vs      *validationState
 		fixture *txFixture
 
 		// the mux from tx, pulled out for convenience
-		mux *bc.Mux
+		mux *types.Mux
 	)
 
-	addCoinbase := func(assetID *bc.AssetID, amount uint64, arbitrary []byte) {
-		coinbase := bc.NewCoinbase(arbitrary)
+	addCoinbase := func(assetID *types.AssetID, amount uint64, arbitrary []byte) {
+		coinbase := types.NewCoinbase(arbitrary)
 		txOutput := types.NewTxOutput(*assetID, amount, []byte{byte(vm.OP_TRUE)})
 		muxID := getMuxID(tx)
 		coinbase.SetDestination(muxID, &txOutput.AssetAmount, uint64(len(mux.Sources)))
-		coinbaseID := bc.EntryID(coinbase)
+		coinbaseID := types.EntryID(coinbase)
 		tx.Entries[coinbaseID] = coinbase
 
-		mux.Sources = append(mux.Sources, &bc.ValueSource{
+		mux.Sources = append(mux.Sources, &types.ValueSource{
 			Ref:   &coinbaseID,
 			Value: &txOutput.AssetAmount,
 		})
 
-		src := &bc.ValueSource{
+		src := &types.ValueSource{
 			Ref:      muxID,
 			Value:    &txOutput.AssetAmount,
 			Position: uint64(len(tx.ResultIds)),
 		}
-		prog := &bc.Program{txOutput.VMVersion, txOutput.ControlProgram}
-		output := bc.NewOutput(src, prog, uint64(len(tx.ResultIds)))
-		outputID := bc.EntryID(output)
+		prog := &types.Program{txOutput.VMVersion, txOutput.ControlProgram}
+		output := types.NewOutput(src, prog, uint64(len(tx.ResultIds)))
+		outputID := types.EntryID(output)
 		tx.Entries[outputID] = output
 
-		dest := &bc.ValueDestination{
+		dest := &types.ValueDestination{
 			Value:    src.Value,
 			Ref:      &outputID,
 			Position: 0,
@@ -334,7 +334,7 @@ func TestTxValidation(t *testing.T) {
 			desc: "unbalanced mux amounts",
 			f: func() {
 				mux.Sources[0].Value.Amount++
-				iss := tx.Entries[*mux.Sources[0].Ref].(*bc.Issuance)
+				iss := tx.Entries[*mux.Sources[0].Ref].(*types.Issuance)
 				iss.WitnessDestination.Value.Amount++
 			},
 			err: ErrUnbalanced,
@@ -358,7 +358,7 @@ func TestTxValidation(t *testing.T) {
 			desc: "overflowing mux source amounts",
 			f: func() {
 				mux.Sources[0].Value.Amount = math.MaxInt64
-				iss := tx.Entries[*mux.Sources[0].Ref].(*bc.Issuance)
+				iss := tx.Entries[*mux.Sources[0].Ref].(*types.Issuance)
 				iss.WitnessDestination.Value.Amount = math.MaxInt64
 			},
 			err: ErrOverflow,
@@ -367,10 +367,10 @@ func TestTxValidation(t *testing.T) {
 			desc: "underflowing mux destination amounts",
 			f: func() {
 				mux.WitnessDestinations[0].Value.Amount = math.MaxInt64
-				out := tx.Entries[*mux.WitnessDestinations[0].Ref].(*bc.Output)
+				out := tx.Entries[*mux.WitnessDestinations[0].Ref].(*types.Output)
 				out.Source.Value.Amount = math.MaxInt64
 				mux.WitnessDestinations[1].Value.Amount = math.MaxInt64
-				out = tx.Entries[*mux.WitnessDestinations[1].Ref].(*bc.Output)
+				out = tx.Entries[*mux.WitnessDestinations[1].Ref].(*types.Output)
 				out.Source.Value.Amount = math.MaxInt64
 			},
 			err: ErrOverflow,
@@ -379,7 +379,7 @@ func TestTxValidation(t *testing.T) {
 			desc: "unbalanced mux assets",
 			f: func() {
 				mux.Sources[1].Value.AssetId = newAssetID(255)
-				sp := tx.Entries[*mux.Sources[1].Ref].(*bc.Spend)
+				sp := tx.Entries[*mux.Sources[1].Ref].(*types.Spend)
 				sp.WitnessDestination.Value.AssetId = newAssetID(255)
 			},
 			err: ErrUnbalanced,
@@ -387,7 +387,7 @@ func TestTxValidation(t *testing.T) {
 		{
 			desc: "mismatched output source / mux dest position",
 			f: func() {
-				tx.Entries[*tx.ResultIds[0]].(*bc.Output).Source.Position = 1
+				tx.Entries[*tx.ResultIds[0]].(*types.Output).Source.Position = 1
 			},
 			err: ErrMismatchedPosition,
 		},
@@ -408,7 +408,7 @@ func TestTxValidation(t *testing.T) {
 				fixture2 := sample(t, fixture)
 				tx2 := types.NewTx(*fixture2.tx).Tx
 				out2ID := tx2.ResultIds[0]
-				out2 := tx2.Entries[*out2ID].(*bc.Output)
+				out2 := tx2.Entries[*out2ID].(*types.Output)
 				tx.Entries[*out2ID] = out2
 				mux.WitnessDestinations[0].Ref = out2ID
 			},
@@ -420,9 +420,9 @@ func TestTxValidation(t *testing.T) {
 				fixture2 := sample(t, fixture)
 				tx2 := types.NewTx(*fixture2.tx).Tx
 				input2ID := tx2.InputIDs[2]
-				input2 := tx2.Entries[input2ID].(*bc.Spend)
+				input2 := tx2.Entries[input2ID].(*types.Spend)
 				dest2Ref := input2.WitnessDestination.Ref
-				dest2 := tx2.Entries[*dest2Ref].(*bc.Mux)
+				dest2 := tx2.Entries[*dest2Ref].(*types.Mux)
 				tx.Entries[*dest2Ref] = dest2
 				tx.Entries[input2ID] = input2
 				mux.Sources[0].Ref = &input2ID
@@ -440,8 +440,8 @@ func TestTxValidation(t *testing.T) {
 			desc: "mismatched mux dest value / output source value",
 			f: func() {
 				outID := tx.ResultIds[0]
-				out := tx.Entries[*outID].(*bc.Output)
-				mux.WitnessDestinations[0].Value = &bc.AssetAmount{
+				out := tx.Entries[*outID].(*types.Output)
+				mux.WitnessDestinations[0].Value = &types.AssetAmount{
 					AssetId: out.Source.Value.AssetId,
 					Amount:  out.Source.Value.Amount + 1,
 				}
@@ -483,8 +483,8 @@ func TestTxValidation(t *testing.T) {
 			desc: "mismatched spent source/witness value",
 			f: func() {
 				spend := txSpend(t, tx, 1)
-				spentOutput := tx.Entries[*spend.SpentOutputId].(*bc.Output)
-				spentOutput.Source.Value = &bc.AssetAmount{
+				spentOutput := tx.Entries[*spend.SpentOutputId].(*types.Output)
+				spentOutput.Source.Value = &types.AssetAmount{
 					AssetId: spend.WitnessDestination.Value.AssetId,
 					Amount:  spend.WitnessDestination.Value.Amount + 1,
 				}
@@ -505,7 +505,7 @@ func TestTxValidation(t *testing.T) {
 				delete(tx.Entries, *spendID)
 				mux.Sources = mux.Sources[:len(mux.Sources)-1]
 			},
-			err: bc.ErrMissingEntry,
+			err: types.ErrMissingEntry,
 		},
 		{
 			desc: "no gas spend input",
@@ -532,8 +532,8 @@ func TestTxValidation(t *testing.T) {
 			desc: "mismatched gas spend input destination amount/prevout source amount",
 			f: func() {
 				spendID := mux.Sources[len(mux.Sources)-1].Ref
-				spend := tx.Entries[*spendID].(*bc.Spend)
-				spend.WitnessDestination.Value = &bc.AssetAmount{
+				spend := tx.Entries[*spendID].(*types.Spend)
+				spend.WitnessDestination.Value = &types.AssetAmount{
 					AssetId: spend.WitnessDestination.Value.AssetId,
 					Amount:  spend.WitnessDestination.Value.Amount + 1,
 				}
@@ -544,8 +544,8 @@ func TestTxValidation(t *testing.T) {
 			desc: "mismatched witness asset destination",
 			f: func() {
 				issuanceID := mux.Sources[0].Ref
-				issuance := tx.Entries[*issuanceID].(*bc.Issuance)
-				issuance.WitnessAssetDefinition.Data = &bc.Hash{V0: 9999}
+				issuance := tx.Entries[*issuanceID].(*types.Issuance)
+				issuance.WitnessAssetDefinition.Data = &types.Hash{V0: 9999}
 			},
 			err: ErrMismatchedAssetID,
 		},
@@ -553,7 +553,7 @@ func TestTxValidation(t *testing.T) {
 			desc: "issuance witness position greater than length of mux sources",
 			f: func() {
 				issuanceID := mux.Sources[0].Ref
-				issuance := tx.Entries[*issuanceID].(*bc.Issuance)
+				issuance := tx.Entries[*issuanceID].(*types.Issuance)
 				issuance.WitnessDestination.Position = uint64(len(mux.Sources) + 1)
 			},
 			err: ErrPosition,
@@ -568,7 +568,7 @@ func TestTxValidation(t *testing.T) {
 		{
 			desc: "invalid coinbase tx asset id",
 			f: func() {
-				addCoinbase(&bc.AssetID{V1: 100}, 100000, nil)
+				addCoinbase(&types.AssetID{V1: 100}, 100000, nil)
 			},
 			err: ErrWrongCoinbaseAsset,
 		},
@@ -592,9 +592,9 @@ func TestTxValidation(t *testing.T) {
 			desc: "normal retirement output",
 			f: func() {
 				outputID := tx.ResultIds[0]
-				output := tx.Entries[*outputID].(*bc.Output)
-				retirement := bc.NewRetirement(output.Source, output.Ordinal)
-				retirementID := bc.EntryID(retirement)
+				output := tx.Entries[*outputID].(*types.Output)
+				retirement := types.NewRetirement(output.Source, output.Ordinal)
+				retirementID := types.EntryID(retirement)
 				tx.Entries[retirementID] = retirement
 				delete(tx.Entries, *outputID)
 				tx.ResultIds[0] = &retirementID
@@ -606,9 +606,9 @@ func TestTxValidation(t *testing.T) {
 			desc: "ordinal doesn't matter for prevouts",
 			f: func() {
 				spend := txSpend(t, tx, 1)
-				prevout := tx.Entries[*spend.SpentOutputId].(*bc.Output)
-				newPrevout := bc.NewOutput(prevout.Source, prevout.ControlProgram, 10)
-				hash := bc.EntryID(newPrevout)
+				prevout := tx.Entries[*spend.SpentOutputId].(*types.Output)
+				newPrevout := types.NewOutput(prevout.Source, prevout.ControlProgram, 10)
+				hash := types.EntryID(newPrevout)
 				spend.SpentOutputId = &hash
 			},
 			err: nil,
@@ -616,9 +616,9 @@ func TestTxValidation(t *testing.T) {
 		{
 			desc: "mux witness destination have no source",
 			f: func() {
-				dest := &bc.ValueDestination{
-					Value: &bc.AssetAmount{
-						AssetId: &bc.AssetID{V2: 1000},
+				dest := &types.ValueDestination{
+					Value: &types.AssetAmount{
+						AssetId: &types.AssetID{V2: 1000},
 						Amount:  100,
 					},
 					Ref:      mux.WitnessDestinations[0].Ref,
@@ -642,10 +642,10 @@ func TestTxValidation(t *testing.T) {
 					GasLeft: int64(80000),
 					GasUsed: 0,
 				},
-				cache: make(map[bc.Hash]error),
+				cache: make(map[types.Hash]error),
 			}
 			muxID := getMuxID(tx)
-			mux = tx.Entries[*muxID].(*bc.Mux)
+			mux = tx.Entries[*muxID].(*types.Mux)
 
 			if c.f != nil {
 				c.f()
@@ -674,24 +674,24 @@ func TestCoinbase(t *testing.T) {
 	})
 
 	cases := []struct {
-		block    *bc.Block
+		block    *types.Block
 		txIndex  int
 		GasValid bool
 		err      error
 	}{
 		{
-			block: &bc.Block{
-				BlockHeader:  &bc.BlockHeader{Height: 666},
-				Transactions: []*bc.Tx{CbTx},
+			block: &types.Block{
+				BlockHeader:  &types.BlockHeader{Height: 666},
+				Transactions: []*types.Tx{CbTx},
 			},
 			txIndex:  0,
 			GasValid: true,
 			err:      nil,
 		},
 		{
-			block: &bc.Block{
-				BlockHeader: &bc.BlockHeader{Height: 666},
-				Transactions: []*bc.Tx{
+			block: &types.Block{
+				BlockHeader: &types.BlockHeader{Height: 666},
+				Transactions: []*types.Tx{
 					CbTx,
 					types.MapTx(&types.TxData{
 						SerializedSize: 1,
@@ -709,9 +709,9 @@ func TestCoinbase(t *testing.T) {
 			err:      ErrWrongCoinbaseTransaction,
 		},
 		{
-			block: &bc.Block{
-				BlockHeader: &bc.BlockHeader{Height: 666},
-				Transactions: []*bc.Tx{
+			block: &types.Block{
+				BlockHeader: &types.BlockHeader{Height: 666},
+				Transactions: []*types.Tx{
 					CbTx,
 					types.MapTx(&types.TxData{
 						SerializedSize: 1,
@@ -731,9 +731,9 @@ func TestCoinbase(t *testing.T) {
 			err:      ErrWrongCoinbaseTransaction,
 		},
 		{
-			block: &bc.Block{
-				BlockHeader: &bc.BlockHeader{Height: 666},
-				Transactions: []*bc.Tx{
+			block: &types.Block{
+				BlockHeader: &types.BlockHeader{Height: 666},
+				Transactions: []*types.Tx{
 					CbTx,
 					types.MapTx(&types.TxData{
 						SerializedSize: 1,
@@ -753,9 +753,9 @@ func TestCoinbase(t *testing.T) {
 			err:      ErrWrongCoinbaseTransaction,
 		},
 		{
-			block: &bc.Block{
-				BlockHeader: &bc.BlockHeader{Height: 666},
-				Transactions: []*bc.Tx{
+			block: &types.Block{
+				BlockHeader: &types.BlockHeader{Height: 666},
+				Transactions: []*types.Tx{
 					types.MapTx(&types.TxData{
 						SerializedSize: 1,
 						Inputs: []*types.TxInput{
@@ -774,9 +774,9 @@ func TestCoinbase(t *testing.T) {
 			err:      nil,
 		},
 		{
-			block: &bc.Block{
-				BlockHeader: &bc.BlockHeader{Height: 666},
-				Transactions: []*bc.Tx{
+			block: &types.Block{
+				BlockHeader: &types.BlockHeader{Height: 666},
+				Transactions: []*types.Tx{
 					types.MapTx(&types.TxData{
 						SerializedSize: 1,
 						Inputs: []*types.TxInput{
@@ -816,13 +816,13 @@ func TestRuleAA(t *testing.T) {
 	}
 
 	cases := []struct {
-		block    *bc.Block
+		block    *types.Block
 		GasValid bool
 		err      error
 	}{
 		{
-			block: &bc.Block{
-				BlockHeader: &bc.BlockHeader{
+			block: &types.Block{
+				BlockHeader: &types.BlockHeader{
 					Height: ruleAA - 1,
 				},
 			},
@@ -830,8 +830,8 @@ func TestRuleAA(t *testing.T) {
 			err:      ErrMismatchedPosition,
 		},
 		{
-			block: &bc.Block{
-				BlockHeader: &bc.BlockHeader{
+			block: &types.Block{
+				BlockHeader: &types.BlockHeader{
 					Height: ruleAA,
 				},
 			},
@@ -876,8 +876,8 @@ func TestTimeRange(t *testing.T) {
 		},
 	}
 
-	block := &bc.Block{
-		BlockHeader: &bc.BlockHeader{
+	block := &types.Block{
+		BlockHeader: &types.BlockHeader{
 			Height:    333,
 			Timestamp: 1521625823,
 		},
@@ -919,12 +919,12 @@ func TestStandardTx(t *testing.T) {
 			desc: "not standard tx in spend input",
 			f: func() {
 				inputID := tx.GasInputIDs[0]
-				spend := tx.Entries[inputID].(*bc.Spend)
+				spend := tx.Entries[inputID].(*types.Spend)
 				spentOutput, err := tx.Output(*spend.SpentOutputId)
 				if err != nil {
 					t.Fatal(err)
 				}
-				spentOutput.ControlProgram = &bc.Program{Code: []byte{0}}
+				spentOutput.ControlProgram = &types.Program{Code: []byte{0}}
 			},
 			err: ErrNotStandardTx,
 		},
@@ -932,8 +932,8 @@ func TestStandardTx(t *testing.T) {
 			desc: "not standard tx in output",
 			f: func() {
 				outputID := tx.ResultIds[0]
-				output := tx.Entries[*outputID].(*bc.Output)
-				output.ControlProgram = &bc.Program{Code: []byte{0}}
+				output := tx.Entries[*outputID].(*types.Output)
+				output.ControlProgram = &types.Program{Code: []byte{0}}
 			},
 			err: ErrNotStandardTx,
 		},
@@ -952,35 +952,35 @@ func TestStandardTx(t *testing.T) {
 func TestValidateTxVersion(t *testing.T) {
 	cases := []struct {
 		desc  string
-		block *bc.Block
+		block *types.Block
 		err   error
 	}{
 		{
 			desc: "tx version greater than 1 (txtest#1001)",
-			block: &bc.Block{
-				BlockHeader: &bc.BlockHeader{Version: 1},
-				Transactions: []*bc.Tx{
-					&bc.Tx{TxHeader: &bc.TxHeader{Version: 2}},
+			block: &types.Block{
+				BlockHeader: &types.BlockHeader{Version: 1},
+				Transactions: []*types.Tx{
+					&types.Tx{TxHeader: &types.TxHeader{Version: 2}},
 				},
 			},
 			err: ErrTxVersion,
 		},
 		{
 			desc: "tx version equals 0 (txtest#1002)",
-			block: &bc.Block{
-				BlockHeader: &bc.BlockHeader{Version: 1},
-				Transactions: []*bc.Tx{
-					&bc.Tx{TxHeader: &bc.TxHeader{Version: 0}},
+			block: &types.Block{
+				BlockHeader: &types.BlockHeader{Version: 1},
+				Transactions: []*types.Tx{
+					&types.Tx{TxHeader: &types.TxHeader{Version: 0}},
 				},
 			},
 			err: ErrTxVersion,
 		},
 		{
 			desc: "tx version equals max uint64 (txtest#1003)",
-			block: &bc.Block{
-				BlockHeader: &bc.BlockHeader{Version: 1},
-				Transactions: []*bc.Tx{
-					&bc.Tx{TxHeader: &bc.TxHeader{Version: math.MaxUint64}},
+			block: &types.Block{
+				BlockHeader: &types.BlockHeader{Version: 1},
+				Transactions: []*types.Tx{
+					&types.Tx{TxHeader: &types.TxHeader{Version: math.MaxUint64}},
 				},
 			},
 			err: ErrTxVersion,
@@ -999,11 +999,11 @@ func TestValidateTxVersion(t *testing.T) {
 // affect the transaction that's built. The components of the
 // transaction are the fields of txFixture.
 type txFixture struct {
-	initialBlockID bc.Hash
-	issuanceProg   bc.Program
+	initialBlockID types.Hash
+	issuanceProg   types.Program
 	issuanceArgs   [][]byte
 	assetDef       []byte
-	assetID        bc.AssetID
+	assetID        types.AssetID
 	txVersion      uint64
 	txInputs       []*types.TxInput
 	txOutputs      []*types.TxOutput
@@ -1038,12 +1038,12 @@ func sample(tb testing.TB, in *txFixture) *txFixture {
 	if result.initialBlockID.IsZero() {
 		result.initialBlockID = *newHash(1)
 	}
-	if testutil.DeepEqual(result.issuanceProg, bc.Program{}) {
+	if testutil.DeepEqual(result.issuanceProg, types.Program{}) {
 		prog, err := vm.Assemble("ADD 5 NUMEQUAL")
 		if err != nil {
 			tb.Fatal(err)
 		}
-		result.issuanceProg = bc.Program{VmVersion: 1, Code: prog}
+		result.issuanceProg = types.Program{VmVersion: 1, Code: prog}
 	}
 	if len(result.issuanceArgs) == 0 {
 		result.issuanceArgs = [][]byte{[]byte{2}, []byte{3}}
@@ -1053,7 +1053,7 @@ func sample(tb testing.TB, in *txFixture) *txFixture {
 	}
 	if result.assetID.IsZero() {
 		refdatahash := hashData(result.assetDef)
-		result.assetID = bc.ComputeAssetID(result.issuanceProg.Code, result.issuanceProg.VmVersion, &refdatahash)
+		result.assetID = types.ComputeAssetID(result.issuanceProg.Code, result.issuanceProg.VmVersion, &refdatahash)
 	}
 
 	if result.txVersion == 0 {
@@ -1106,9 +1106,9 @@ func sample(tb testing.TB, in *txFixture) *txFixture {
 	return &result
 }
 
-func mockBlock() *bc.Block {
-	return &bc.Block{
-		BlockHeader: &bc.BlockHeader{
+func mockBlock() *types.Block {
+	return &types.Block{
+		BlockHeader: &types.BlockHeader{
 			Height: 666,
 		},
 	}
@@ -1124,23 +1124,23 @@ func rootErr(e error) error {
 	return errors.Root(e)
 }
 
-func hashData(data []byte) bc.Hash {
+func hashData(data []byte) types.Hash {
 	var b32 [32]byte
 	sha3pool.Sum256(b32[:], data)
-	return bc.NewHash(b32)
+	return types.NewHash(b32)
 }
 
-func newHash(n byte) *bc.Hash {
-	h := bc.NewHash([32]byte{n})
+func newHash(n byte) *types.Hash {
+	h := types.NewHash([32]byte{n})
 	return &h
 }
 
-func newAssetID(n byte) *bc.AssetID {
-	a := bc.NewAssetID([32]byte{n})
+func newAssetID(n byte) *types.AssetID {
+	a := types.NewAssetID([32]byte{n})
 	return &a
 }
 
-func txIssuance(t *testing.T, tx *bc.Tx, index int) *bc.Issuance {
+func txIssuance(t *testing.T, tx *types.Tx, index int) *types.Issuance {
 	id := tx.InputIDs[index]
 	res, err := tx.Issuance(id)
 	if err != nil {
@@ -1149,7 +1149,7 @@ func txIssuance(t *testing.T, tx *bc.Tx, index int) *bc.Issuance {
 	return res
 }
 
-func txSpend(t *testing.T, tx *bc.Tx, index int) *bc.Spend {
+func txSpend(t *testing.T, tx *types.Tx, index int) *types.Spend {
 	id := tx.InputIDs[index]
 	res, err := tx.Spend(id)
 	if err != nil {
@@ -1158,12 +1158,12 @@ func txSpend(t *testing.T, tx *bc.Tx, index int) *bc.Spend {
 	return res
 }
 
-func getMuxID(tx *bc.Tx) *bc.Hash {
+func getMuxID(tx *types.Tx) *types.Hash {
 	out := tx.Entries[*tx.ResultIds[0]]
 	switch result := out.(type) {
-	case *bc.Output:
+	case *types.Output:
 		return result.Source.Ref
-	case *bc.Retirement:
+	case *types.Retirement:
 		return result.Source.Ref
 	}
 	return nil

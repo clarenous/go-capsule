@@ -4,8 +4,8 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/bytom/errors"
-	"github.com/bytom/protocol/bc"
-	"github.com/bytom/protocol/bc/types"
+	"github.com/clarenous/go-capsule/protocol/types"
+
 	"github.com/bytom/protocol/state"
 	"github.com/bytom/protocol/validation"
 )
@@ -14,12 +14,12 @@ import (
 var ErrBadTx = errors.New("invalid transaction")
 
 // GetTransactionStatus return the transaction status of give block
-func (c *Chain) GetTransactionStatus(hash *bc.Hash) (*bc.TransactionStatus, error) {
+func (c *Chain) GetTransactionStatus(hash *types.Hash) (*types.TransactionStatus, error) {
 	return c.store.GetTransactionStatus(hash)
 }
 
 // GetTransactionsUtxo return all the utxos that related to the txs' inputs
-func (c *Chain) GetTransactionsUtxo(view *state.UtxoViewpoint, txs []*bc.Tx) error {
+func (c *Chain) GetTransactionsUtxo(view *state.UtxoViewpoint, txs []*types.Tx) error {
 	return c.store.GetTransactionsUtxo(view, txs)
 }
 

@@ -9,8 +9,8 @@ import (
 	"github.com/bytom/common"
 	"github.com/bytom/consensus"
 	"github.com/bytom/consensus/difficulty"
-	"github.com/bytom/protocol/bc"
-	"github.com/bytom/protocol/bc/types"
+	"github.com/clarenous/go-capsule/protocol/types"
+
 )
 
 // approxNodesPerDay is an approximation of the number of new blocks there are
@@ -21,8 +21,8 @@ const approxNodesPerDay = 24 * 24
 // aid in selecting the best chain to be the main chain.
 type BlockNode struct {
 	Parent  *BlockNode // parent is the parent block for this node.
-	Hash    bc.Hash    // hash of the block.
-	Seed    *bc.Hash   // seed hash of the block
+	Hash    types.Hash    // hash of the block.
+	Seed    *types.Hash   // seed hash of the block
 	WorkSum *big.Int   // total amount of work in the chain up to
 
 	Version                uint64
@@ -30,8 +30,8 @@ type BlockNode struct {
 	Timestamp              uint64
 	Nonce                  uint64
 	Bits                   uint64
-	TransactionsMerkleRoot bc.Hash
-	TransactionStatusHash  bc.Hash
+	TransactionsMerkleRoot types.Hash
+	TransactionStatusHash  types.Hash
 }
 
 func NewBlockNode(bh *types.BlockHeader, parent *BlockNode) (*BlockNode, error) {
@@ -63,7 +63,7 @@ func NewBlockNode(bh *types.BlockHeader, parent *BlockNode) (*BlockNode, error) 
 
 // blockHeader convert a node to the header struct
 func (node *BlockNode) BlockHeader() *types.BlockHeader {
-	previousBlockHash := bc.Hash{}
+	previousBlockHash := types.Hash{}
 	if node.Parent != nil {
 		previousBlockHash = node.Parent.Hash
 	}
@@ -107,7 +107,7 @@ func (node *BlockNode) CalcNextBits() uint64 {
 }
 
 // CalcNextSeed calculate the seed for next block
-func (node *BlockNode) CalcNextSeed() *bc.Hash {
+func (node *BlockNode) CalcNextSeed() *types.Hash {
 	if node.Height == 0 {
 		return consensus.InitialSeed
 	}
@@ -121,14 +121,14 @@ func (node *BlockNode) CalcNextSeed() *bc.Hash {
 type BlockIndex struct {
 	sync.RWMutex
 
-	index     map[bc.Hash]*BlockNode
+	index     map[types.Hash]*BlockNode
 	mainChain []*BlockNode
 }
 
 // NewBlockIndex will create a empty BlockIndex
 func NewBlockIndex() *BlockIndex {
 	return &BlockIndex{
-		index:     make(map[bc.Hash]*BlockNode),
+		index:     make(map[types.Hash]*BlockNode),
 		mainChain: make([]*BlockNode, 0, approxNodesPerDay),
 	}
 }
@@ -141,7 +141,7 @@ func (bi *BlockIndex) AddNode(node *BlockNode) {
 }
 
 // GetNode will search node from the index map
-func (bi *BlockIndex) GetNode(hash *bc.Hash) *BlockNode {
+func (bi *BlockIndex) GetNode(hash *types.Hash) *BlockNode {
 	bi.RLock()
 	defer bi.RUnlock()
 	return bi.index[*hash]
@@ -154,7 +154,7 @@ func (bi *BlockIndex) BestNode() *BlockNode {
 }
 
 // BlockExist check does the block existed in blockIndex
-func (bi *BlockIndex) BlockExist(hash *bc.Hash) bool {
+func (bi *BlockIndex) BlockExist(hash *types.Hash) bool {
 	bi.RLock()
 	_, ok := bi.index[*hash]
 	bi.RUnlock()
@@ -162,7 +162,7 @@ func (bi *BlockIndex) BlockExist(hash *bc.Hash) bool {
 }
 
 // TODO: THIS FUNCTION MIGHT BE DELETED
-func (bi *BlockIndex) InMainchain(hash bc.Hash) bool {
+func (bi *BlockIndex) InMainchain(hash types.Hash) bool {
 	bi.RLock()
 	defer bi.RUnlock()
 

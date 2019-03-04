@@ -5,23 +5,23 @@ import (
 	"testing"
 
 	"github.com/bytom/errors"
-	"github.com/bytom/protocol/bc"
-	"github.com/bytom/protocol/bc/types"
+	"github.com/clarenous/go-capsule/protocol/types"
+
 	"github.com/bytom/protocol/vm"
 )
 
 func TestCheckOutput(t *testing.T) {
 	tx := types.NewTx(types.TxData{
 		Inputs: []*types.TxInput{
-			types.NewSpendInput(nil, bc.Hash{}, bc.NewAssetID([32]byte{1}), 5, 1, []byte("spendprog")),
+			types.NewSpendInput(nil, types.Hash{}, types.NewAssetID([32]byte{1}), 5, 1, []byte("spendprog")),
 			types.NewIssuanceInput(nil, 6, []byte("issueprog"), nil, nil),
 		},
 		Outputs: []*types.TxOutput{
-			types.NewTxOutput(bc.NewAssetID([32]byte{3}), 8, []byte("wrongprog")),
-			types.NewTxOutput(bc.NewAssetID([32]byte{3}), 8, []byte("controlprog")),
-			types.NewTxOutput(bc.NewAssetID([32]byte{2}), 8, []byte("controlprog")),
-			types.NewTxOutput(bc.NewAssetID([32]byte{2}), 7, []byte("controlprog")),
-			types.NewTxOutput(bc.NewAssetID([32]byte{2}), 7, []byte("controlprog")),
+			types.NewTxOutput(types.NewAssetID([32]byte{3}), 8, []byte("wrongprog")),
+			types.NewTxOutput(types.NewAssetID([32]byte{3}), 8, []byte("controlprog")),
+			types.NewTxOutput(types.NewAssetID([32]byte{2}), 8, []byte("controlprog")),
+			types.NewTxOutput(types.NewAssetID([32]byte{2}), 7, []byte("controlprog")),
+			types.NewTxOutput(types.NewAssetID([32]byte{2}), 7, []byte("controlprog")),
 		},
 	})
 

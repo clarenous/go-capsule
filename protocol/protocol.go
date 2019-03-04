@@ -7,8 +7,8 @@ import (
 
 	"github.com/bytom/config"
 	"github.com/bytom/errors"
-	"github.com/bytom/protocol/bc"
-	"github.com/bytom/protocol/bc/types"
+	"github.com/clarenous/go-capsule/protocol/types"
+
 	"github.com/bytom/protocol/state"
 )
 
@@ -57,7 +57,7 @@ func NewChain(store Store, txPool *TxPool) (*Chain, error) {
 
 func (c *Chain) initChainStatus() error {
 	genesisBlock := config.GenesisBlock()
-	txStatus := bc.NewTransactionStatus()
+	txStatus := types.NewTransactionStatus()
 	for i := range genesisBlock.Transactions {
 		if err := txStatus.SetStatus(i, false); err != nil {
 			return err
@@ -89,7 +89,7 @@ func (c *Chain) BestBlockHeight() uint64 {
 }
 
 // BestBlockHash return the hash of the chain tail block
-func (c *Chain) BestBlockHash() *bc.Hash {
+func (c *Chain) BestBlockHash() *types.Hash {
 	c.cond.L.Lock()
 	defer c.cond.L.Unlock()
 	return &c.bestNode.Hash
@@ -102,12 +102,12 @@ func (c *Chain) BestBlockHeader() *types.BlockHeader {
 }
 
 // InMainChain checks wheather a block is in the main chain
-func (c *Chain) InMainChain(hash bc.Hash) bool {
+func (c *Chain) InMainChain(hash types.Hash) bool {
 	return c.index.InMainchain(hash)
 }
 
 // CalcNextSeed return the seed for the given block
-func (c *Chain) CalcNextSeed(preBlock *bc.Hash) (*bc.Hash, error) {
+func (c *Chain) CalcNextSeed(preBlock *types.Hash) (*types.Hash, error) {
 	node := c.index.GetNode(preBlock)
 	if node == nil {
 		return nil, errors.New("can't find preblock in the blockindex")
@@ -116,7 +116,7 @@ func (c *Chain) CalcNextSeed(preBlock *bc.Hash) (*bc.Hash, error) {
 }
 
 // CalcNextBits return the seed for the given block
-func (c *Chain) CalcNextBits(preBlock *bc.Hash) (uint64, error) {
+func (c *Chain) CalcNextBits(preBlock *types.Hash) (uint64, error) {
 	node := c.index.GetNode(preBlock)
 	if node == nil {
 		return 0, errors.New("can't find preblock in the blockindex")

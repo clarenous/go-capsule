@@ -5,22 +5,22 @@ import (
 
 	"github.com/bytom/consensus"
 	"github.com/bytom/database/storage"
-	"github.com/bytom/protocol/bc"
+	"github.com/clarenous/go-capsule/protocol/types"
 )
 
 // UtxoViewpoint represents a view into the set of unspent transaction outputs
 type UtxoViewpoint struct {
-	Entries map[bc.Hash]*storage.UtxoEntry
+	Entries map[types.Hash]*storage.UtxoEntry
 }
 
 // NewUtxoViewpoint returns a new empty unspent transaction output view.
 func NewUtxoViewpoint() *UtxoViewpoint {
 	return &UtxoViewpoint{
-		Entries: make(map[bc.Hash]*storage.UtxoEntry),
+		Entries: make(map[types.Hash]*storage.UtxoEntry),
 	}
 }
 
-func (view *UtxoViewpoint) ApplyTransaction(block *bc.Block, tx *bc.Tx, statusFail bool) error {
+func (view *UtxoViewpoint) ApplyTransaction(block *types.Block, tx *types.Tx, statusFail bool) error {
 	for _, prevout := range tx.SpentOutputIDs {
 		spentOutput, err := tx.Output(prevout)
 		if err != nil {
@@ -62,7 +62,7 @@ func (view *UtxoViewpoint) ApplyTransaction(block *bc.Block, tx *bc.Tx, statusFa
 	return nil
 }
 
-func (view *UtxoViewpoint) ApplyBlock(block *bc.Block, txStatus *bc.TransactionStatus) error {
+func (view *UtxoViewpoint) ApplyBlock(block *types.Block, txStatus *types.TransactionStatus) error {
 	for i, tx := range block.Transactions {
 		statusFail, err := txStatus.GetStatus(i)
 		if err != nil {
@@ -75,12 +75,12 @@ func (view *UtxoViewpoint) ApplyBlock(block *bc.Block, txStatus *bc.TransactionS
 	return nil
 }
 
-func (view *UtxoViewpoint) CanSpend(hash *bc.Hash) bool {
+func (view *UtxoViewpoint) CanSpend(hash *types.Hash) bool {
 	entry := view.Entries[*hash]
 	return entry != nil && !entry.Spent
 }
 
-func (view *UtxoViewpoint) DetachTransaction(tx *bc.Tx, statusFail bool) error {
+func (view *UtxoViewpoint) DetachTransaction(tx *types.Tx, statusFail bool) error {
 	for _, prevout := range tx.SpentOutputIDs {
 		spentOutput, err := tx.Output(prevout)
 		if err != nil {
@@ -116,7 +116,7 @@ func (view *UtxoViewpoint) DetachTransaction(tx *bc.Tx, statusFail bool) error {
 	return nil
 }
 
-func (view *UtxoViewpoint) DetachBlock(block *bc.Block, txStatus *bc.TransactionStatus) error {
+func (view *UtxoViewpoint) DetachBlock(block *types.Block, txStatus *types.TransactionStatus) error {
 	for i := len(block.Transactions) - 1; i >= 0; i-- {
 		statusFail, err := txStatus.GetStatus(i)
 		if err != nil {
@@ -129,7 +129,7 @@ func (view *UtxoViewpoint) DetachBlock(block *bc.Block, txStatus *bc.Transaction
 	return nil
 }
 
-func (view *UtxoViewpoint) HasUtxo(hash *bc.Hash) bool {
+func (view *UtxoViewpoint) HasUtxo(hash *types.Hash) bool {
 	_, ok := view.Entries[*hash]
 	return ok
 }

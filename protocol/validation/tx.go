@@ -8,7 +8,7 @@ import (
 	"github.com/bytom/consensus/segwit"
 	"github.com/bytom/errors"
 	"github.com/bytom/math/checked"
-	"github.com/bytom/protocol/bc"
+	"github.com/clarenous/go-capsule/protocol/types"
 	"github.com/bytom/protocol/vm"
 )
 
@@ -104,18 +104,18 @@ func (g *GasState) updateUsage(gasLeft int64) error {
 // validationState contains the context that must propagate through
 // the transaction graph when validating entries.
 type validationState struct {
-	block     *bc.Block
-	tx        *bc.Tx
+	block     *types.Block
+	tx        *types.Tx
 	gasStatus *GasState
-	entryID   bc.Hash           // The ID of the nearest enclosing entry
+	entryID   types.Hash           // The ID of the nearest enclosing entry
 	sourcePos uint64            // The source position, for validate ValueSources
 	destPos   uint64            // The destination position, for validate ValueDestinations
-	cache     map[bc.Hash]error // Memoized per-entry validation results
+	cache     map[types.Hash]error // Memoized per-entry validation results
 }
 
-func checkValid(vs *validationState, e bc.Entry) (err error) {
+func checkValid(vs *validationState, e types.Entry) (err error) {
 	var ok bool
-	entryID := bc.EntryID(e)
+	entryID := types.EntryID(e)
 	if err, ok = vs.cache[entryID]; ok {
 		return err
 	}
@@ -125,7 +125,7 @@ func checkValid(vs *validationState, e bc.Entry) (err error) {
 	}()
 
 	switch e := e.(type) {
-	case *bc.TxHeader:
+	case *types.TxHeader:
 		for i, resID := range e.ResultIds {
 			resultEntry := vs.tx.Entries[*resID]
 			vs2 := *vs
@@ -139,8 +139,8 @@ func checkValid(vs *validationState, e bc.Entry) (err error) {
 			return ErrEmptyResults
 		}
 
-	case *bc.Mux:
-		parity := make(map[bc.AssetID]int64)
+	case *types.Mux:
+		parity := make(map[types.AssetID]int64)
 		for i, src := range e.Sources {
 			if src.Value.Amount > math.MaxInt64 {
 				return errors.WithDetailf(ErrOverflow, "amount %d exceeds maximum value 2^63", src.Value.Amount)
@@ -180,7 +180,7 @@ func checkValid(vs *validationState, e bc.Entry) (err error) {
 		for _, BTMInputID := range vs.tx.GasInputIDs {
 			e, ok := vs.tx.Entries[BTMInputID]
 			if !ok {
-				return errors.Wrapf(bc.ErrMissingEntry, "entry for bytom input %x not found", BTMInputID)
+				return errors.Wrapf(types.ErrMissingEntry, "entry for bytom input %x not found", BTMInputID)
 			}
 
 			vs2 := *vs
@@ -210,21 +210,21 @@ func checkValid(vs *validationState, e bc.Entry) (err error) {
 			}
 		}
 
-	case *bc.Output:
+	case *types.Output:
 		vs2 := *vs
 		vs2.sourcePos = 0
 		if err = checkValidSrc(&vs2, e.Source); err != nil {
 			return errors.Wrap(err, "checking output source")
 		}
 
-	case *bc.Retirement:
+	case *types.Retirement:
 		vs2 := *vs
 		vs2.sourcePos = 0
 		if err = checkValidSrc(&vs2, e.Source); err != nil {
 			return errors.Wrap(err, "checking retirement source")
 		}
 
-	case *bc.Issuance:
+	case *types.Issuance:
 		computedAssetID := e.WitnessAssetDefinition.ComputeAssetID()
 		if computedAssetID != *e.Value.AssetId {
 			return errors.WithDetailf(ErrMismatchedAssetID, "asset ID is %x, issuance wants %x", computedAssetID.Bytes(), e.Value.AssetId.Bytes())
@@ -244,7 +244,7 @@ func checkValid(vs *validationState, e bc.Entry) (err error) {
 			return errors.Wrap(err, "checking issuance destination")
 		}
 
-	case *bc.Spend:
+	case *types.Spend:
 		if e.SpentOutputId == nil {
 			return errors.Wrap(ErrMissingField, "spend without spent output ID")
 		}
@@ -282,7 +282,7 @@ func checkValid(vs *validationState, e bc.Entry) (err error) {
 			return errors.Wrap(err, "checking spend destination")
 		}
 
-	case *bc.Coinbase:
+	case *types.Coinbase:
 		if vs.block == nil || len(vs.block.Transactions) == 0 || vs.block.Transactions[0] != vs.tx {
 			return ErrWrongCoinbaseTransaction
 		}
@@ -309,7 +309,7 @@ func checkValid(vs *validationState, e bc.Entry) (err error) {
 	return nil
 }
 
-func checkValidSrc(vstate *validationState, vs *bc.ValueSource) error {
+func checkValidSrc(vstate *validationState, vs *types.ValueSource) error {
 	if vs == nil {
 		return errors.Wrap(ErrMissingField, "empty value source")
 	}
@@ -322,7 +322,7 @@ func checkValidSrc(vstate *validationState, vs *bc.ValueSource) error {
 
 	e, ok := vstate.tx.Entries[*vs.Ref]
 	if !ok {
-		return errors.Wrapf(bc.ErrMissingEntry, "entry for value source %x not found", vs.Ref.Bytes())
+		return errors.Wrapf(types.ErrMissingEntry, "entry for value source %x not found", vs.Ref.Bytes())
 	}
 
 	vstate2 := *vstate
@@ -331,34 +331,34 @@ func checkValidSrc(vstate *validationState, vs *bc.ValueSource) error {
 		return errors.Wrap(err, "checking value source")
 	}
 
-	var dest *bc.ValueDestination
+	var dest *types.ValueDestination
 	switch ref := e.(type) {
-	case *bc.Coinbase:
+	case *types.Coinbase:
 		if vs.Position != 0 {
 			return errors.Wrapf(ErrPosition, "invalid position %d for coinbase source", vs.Position)
 		}
 		dest = ref.WitnessDestination
 
-	case *bc.Issuance:
+	case *types.Issuance:
 		if vs.Position != 0 {
 			return errors.Wrapf(ErrPosition, "invalid position %d for issuance source", vs.Position)
 		}
 		dest = ref.WitnessDestination
 
-	case *bc.Spend:
+	case *types.Spend:
 		if vs.Position != 0 {
 			return errors.Wrapf(ErrPosition, "invalid position %d for spend source", vs.Position)
 		}
 		dest = ref.WitnessDestination
 
-	case *bc.Mux:
+	case *types.Mux:
 		if vs.Position >= uint64(len(ref.WitnessDestinations)) {
 			return errors.Wrapf(ErrPosition, "invalid position %d for %d-destination mux source", vs.Position, len(ref.WitnessDestinations))
 		}
 		dest = ref.WitnessDestinations[vs.Position]
 
 	default:
-		return errors.Wrapf(bc.ErrEntryType, "value source is %T, should be coinbase, issuance, spend, or mux", e)
+		return errors.Wrapf(types.ErrEntryType, "value source is %T, should be coinbase, issuance, spend, or mux", e)
 	}
 
 	if dest.Ref == nil || *dest.Ref != vstate.entryID {
@@ -380,7 +380,7 @@ func checkValidSrc(vstate *validationState, vs *bc.ValueSource) error {
 	return nil
 }
 
-func checkValidDest(vs *validationState, vd *bc.ValueDestination) error {
+func checkValidDest(vs *validationState, vd *types.ValueDestination) error {
 	if vd == nil {
 		return errors.Wrap(ErrMissingField, "empty value destination")
 	}
@@ -393,31 +393,31 @@ func checkValidDest(vs *validationState, vd *bc.ValueDestination) error {
 
 	e, ok := vs.tx.Entries[*vd.Ref]
 	if !ok {
-		return errors.Wrapf(bc.ErrMissingEntry, "entry for value destination %x not found", vd.Ref.Bytes())
+		return errors.Wrapf(types.ErrMissingEntry, "entry for value destination %x not found", vd.Ref.Bytes())
 	}
 
-	var src *bc.ValueSource
+	var src *types.ValueSource
 	switch ref := e.(type) {
-	case *bc.Output:
+	case *types.Output:
 		if vd.Position != 0 {
 			return errors.Wrapf(ErrPosition, "invalid position %d for output destination", vd.Position)
 		}
 		src = ref.Source
 
-	case *bc.Retirement:
+	case *types.Retirement:
 		if vd.Position != 0 {
 			return errors.Wrapf(ErrPosition, "invalid position %d for retirement destination", vd.Position)
 		}
 		src = ref.Source
 
-	case *bc.Mux:
+	case *types.Mux:
 		if vd.Position >= uint64(len(ref.Sources)) {
 			return errors.Wrapf(ErrPosition, "invalid position %d for %d-source mux destination", vd.Position, len(ref.Sources))
 		}
 		src = ref.Sources[vd.Position]
 
 	default:
-		return errors.Wrapf(bc.ErrEntryType, "value destination is %T, should be output, retirement, or mux", e)
+		return errors.Wrapf(types.ErrEntryType, "value destination is %T, should be output, retirement, or mux", e)
 	}
 
 	if src.Ref == nil || *src.Ref != vs.entryID {
@@ -439,7 +439,7 @@ func checkValidDest(vs *validationState, vd *bc.ValueDestination) error {
 	return nil
 }
 
-func checkStandardTx(tx *bc.Tx, blockHeight uint64) error {
+func checkStandardTx(tx *types.Tx, blockHeight uint64) error {
 	for _, id := range tx.InputIDs {
 		if blockHeight >= ruleAA && id.IsZero() {
 			return ErrEmptyInputIDs
@@ -464,10 +464,10 @@ func checkStandardTx(tx *bc.Tx, blockHeight uint64) error {
 	for _, id := range tx.ResultIds {
 		e, ok := tx.Entries[*id]
 		if !ok {
-			return errors.Wrapf(bc.ErrMissingEntry, "id %x", id.Bytes())
+			return errors.Wrapf(types.ErrMissingEntry, "id %x", id.Bytes())
 		}
 
-		output, ok := e.(*bc.Output)
+		output, ok := e.(*types.Output)
 		if !ok || *output.Source.Value.AssetId != *consensus.BTMAssetID {
 			continue
 		}
@@ -479,7 +479,7 @@ func checkStandardTx(tx *bc.Tx, blockHeight uint64) error {
 	return nil
 }
 
-func checkTimeRange(tx *bc.Tx, block *bc.Block) error {
+func checkTimeRange(tx *types.Tx, block *types.Block) error {
 	if tx.TimeRange == 0 {
 		return nil
 	}
@@ -491,7 +491,7 @@ func checkTimeRange(tx *bc.Tx, block *bc.Block) error {
 }
 
 // ValidateTx validates a transaction.
-func ValidateTx(tx *bc.Tx, block *bc.Block) (*GasState, error) {
+func ValidateTx(tx *types.Tx, block *types.Block) (*GasState, error) {
 	gasStatus := &GasState{GasValid: false}
 	if block.Version == 1 && tx.Version != 1 {
 		return gasStatus, errors.WithDetailf(ErrTxVersion, "block version %d, transaction version %d", block.Version, tx.Version)
@@ -511,7 +511,7 @@ func ValidateTx(tx *bc.Tx, block *bc.Block) (*GasState, error) {
 		tx:        tx,
 		entryID:   tx.ID,
 		gasStatus: gasStatus,
-		cache:     make(map[bc.Hash]error),
+		cache:     make(map[types.Hash]error),
 	}
 	return vs.gasStatus, checkValid(vs, tx.TxHeader)
 }

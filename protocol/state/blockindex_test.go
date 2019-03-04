@@ -6,8 +6,8 @@ import (
 
 	"github.com/bytom/consensus"
 	"github.com/bytom/consensus/difficulty"
-	"github.com/bytom/protocol/bc"
-	"github.com/bytom/protocol/bc/types"
+	"github.com/clarenous/go-capsule/protocol/types"
+
 )
 
 func TestCalcPastMedianTime(t *testing.T) {
@@ -122,7 +122,7 @@ func TestCalcNextBits(t *testing.T) {
 func TestCalcNextSeed(t *testing.T) {
 	cases := []struct {
 		node *BlockNode
-		seed *bc.Hash
+		seed *types.Hash
 	}{
 		{
 			node: &BlockNode{
@@ -133,17 +133,17 @@ func TestCalcNextSeed(t *testing.T) {
 		{
 			node: &BlockNode{
 				Height: consensus.SeedPerRetarget - 1,
-				Seed:   &bc.Hash{V1: 100},
+				Seed:   &types.Hash{V1: 100},
 			},
-			seed: &bc.Hash{V1: 100},
+			seed: &types.Hash{V1: 100},
 		},
 		{
 			node: &BlockNode{
 				Height: consensus.SeedPerRetarget,
-				Seed:   &bc.Hash{V2: 200},
-				Hash:   bc.Hash{V3: 300},
+				Seed:   &types.Hash{V2: 200},
+				Hash:   types.Hash{V3: 300},
 			},
-			seed: &bc.Hash{V3: 300},
+			seed: &types.Hash{V3: 300},
 		},
 	}
 
@@ -161,7 +161,7 @@ func TestSetMainChain(t *testing.T) {
 	for i := uint64(0); i < 4; i++ {
 		node := &BlockNode{
 			Height: i,
-			Hash:   bc.Hash{V0: i},
+			Hash:   types.Hash{V0: i},
 			Parent: lastNode,
 		}
 		blockIndex.AddNode(node)
@@ -183,7 +183,7 @@ func TestSetMainChain(t *testing.T) {
 	for i := uint64(1); i <= 3; i++ {
 		node := &BlockNode{
 			Height: lastNode.Height + 1,
-			Hash:   bc.Hash{V1: uint64(i)},
+			Hash:   types.Hash{V1: uint64(i)},
 			Parent: lastNode,
 		}
 		blockIndex.AddNode(node)

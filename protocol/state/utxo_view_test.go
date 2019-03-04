@@ -5,32 +5,32 @@ import (
 
 	"github.com/bytom/consensus"
 	"github.com/bytom/database/storage"
-	"github.com/bytom/protocol/bc"
+	"github.com/clarenous/go-capsule/protocol/types"
 	"github.com/bytom/testutil"
 )
 
-var defaultEntry = map[bc.Hash]bc.Entry{
-	bc.Hash{V0: 0}: &bc.Output{
-		Source: &bc.ValueSource{
-			Value: &bc.AssetAmount{
-				AssetId: &bc.AssetID{V0: 0},
+var defaultEntry = map[types.Hash]types.Entry{
+	types.Hash{V0: 0}: &types.Output{
+		Source: &types.ValueSource{
+			Value: &types.AssetAmount{
+				AssetId: &types.AssetID{V0: 0},
 			},
 		},
 	},
 }
 
-var gasOnlyTxEntry = map[bc.Hash]bc.Entry{
-	bc.Hash{V1: 0}: &bc.Output{
-		Source: &bc.ValueSource{
-			Value: &bc.AssetAmount{
+var gasOnlyTxEntry = map[types.Hash]types.Entry{
+	types.Hash{V1: 0}: &types.Output{
+		Source: &types.ValueSource{
+			Value: &types.AssetAmount{
 				AssetId: consensus.BTMAssetID,
 			},
 		},
 	},
-	bc.Hash{V1: 1}: &bc.Output{
-		Source: &bc.ValueSource{
-			Value: &bc.AssetAmount{
-				AssetId: &bc.AssetID{V0: 999},
+	types.Hash{V1: 1}: &types.Output{
+		Source: &types.ValueSource{
+			Value: &types.AssetAmount{
+				AssetId: &types.AssetID{V0: 999},
 			},
 		},
 	},
@@ -38,7 +38,7 @@ var gasOnlyTxEntry = map[bc.Hash]bc.Entry{
 
 func TestApplyBlock(t *testing.T) {
 	cases := []struct {
-		block     *bc.Block
+		block     *types.Block
 		inputView *UtxoViewpoint
 		fetchView *UtxoViewpoint
 		gasOnlyTx bool
@@ -46,36 +46,36 @@ func TestApplyBlock(t *testing.T) {
 	}{
 		{
 			// can't find prevout in tx entries
-			block: &bc.Block{
-				BlockHeader: &bc.BlockHeader{
-					TransactionStatus: bc.NewTransactionStatus(),
+			block: &types.Block{
+				BlockHeader: &types.BlockHeader{
+					TransactionStatus: types.NewTransactionStatus(),
 				},
-				Transactions: []*bc.Tx{
-					&bc.Tx{
-						SpentOutputIDs: []bc.Hash{
-							bc.Hash{V0: 1},
+				Transactions: []*types.Tx{
+					&types.Tx{
+						SpentOutputIDs: []types.Hash{
+							types.Hash{V0: 1},
 						},
 						Entries: defaultEntry,
 					},
 				},
 			},
 			inputView: &UtxoViewpoint{
-				Entries: map[bc.Hash]*storage.UtxoEntry{
-					bc.Hash{V0: 0}: storage.NewUtxoEntry(false, 0, false),
+				Entries: map[types.Hash]*storage.UtxoEntry{
+					types.Hash{V0: 0}: storage.NewUtxoEntry(false, 0, false),
 				},
 			},
 			fetchView: NewUtxoViewpoint(),
 			err:       true,
 		},
 		{
-			block: &bc.Block{
-				BlockHeader: &bc.BlockHeader{
-					TransactionStatus: bc.NewTransactionStatus(),
+			block: &types.Block{
+				BlockHeader: &types.BlockHeader{
+					TransactionStatus: types.NewTransactionStatus(),
 				},
-				Transactions: []*bc.Tx{
-					&bc.Tx{
-						SpentOutputIDs: []bc.Hash{
-							bc.Hash{V0: 0},
+				Transactions: []*types.Tx{
+					&types.Tx{
+						SpentOutputIDs: []types.Hash{
+							types.Hash{V0: 0},
 						},
 						Entries: defaultEntry,
 					},
@@ -86,170 +86,170 @@ func TestApplyBlock(t *testing.T) {
 			err:       true,
 		},
 		{
-			block: &bc.Block{
-				BlockHeader: &bc.BlockHeader{
-					TransactionStatus: bc.NewTransactionStatus(),
+			block: &types.Block{
+				BlockHeader: &types.BlockHeader{
+					TransactionStatus: types.NewTransactionStatus(),
 				},
-				Transactions: []*bc.Tx{
-					&bc.Tx{
-						SpentOutputIDs: []bc.Hash{
-							bc.Hash{V0: 0},
+				Transactions: []*types.Tx{
+					&types.Tx{
+						SpentOutputIDs: []types.Hash{
+							types.Hash{V0: 0},
 						},
 						Entries: defaultEntry,
 					},
 				},
 			},
 			inputView: &UtxoViewpoint{
-				Entries: map[bc.Hash]*storage.UtxoEntry{
-					bc.Hash{V0: 0}: storage.NewUtxoEntry(false, 0, true),
+				Entries: map[types.Hash]*storage.UtxoEntry{
+					types.Hash{V0: 0}: storage.NewUtxoEntry(false, 0, true),
 				},
 			},
 			err: true,
 		},
 		{
-			block: &bc.Block{
-				BlockHeader: &bc.BlockHeader{
-					TransactionStatus: bc.NewTransactionStatus(),
+			block: &types.Block{
+				BlockHeader: &types.BlockHeader{
+					TransactionStatus: types.NewTransactionStatus(),
 				},
-				Transactions: []*bc.Tx{
-					&bc.Tx{
-						TxHeader: &bc.TxHeader{
-							ResultIds: []*bc.Hash{},
+				Transactions: []*types.Tx{
+					&types.Tx{
+						TxHeader: &types.TxHeader{
+							ResultIds: []*types.Hash{},
 						},
-						SpentOutputIDs: []bc.Hash{
-							bc.Hash{V0: 0},
+						SpentOutputIDs: []types.Hash{
+							types.Hash{V0: 0},
 						},
 						Entries: defaultEntry,
 					},
 				},
 			},
 			inputView: &UtxoViewpoint{
-				Entries: map[bc.Hash]*storage.UtxoEntry{
-					bc.Hash{V0: 0}: storage.NewUtxoEntry(false, 0, false),
+				Entries: map[types.Hash]*storage.UtxoEntry{
+					types.Hash{V0: 0}: storage.NewUtxoEntry(false, 0, false),
 				},
 			},
 			fetchView: &UtxoViewpoint{
-				Entries: map[bc.Hash]*storage.UtxoEntry{
-					bc.Hash{V0: 0}: storage.NewUtxoEntry(false, 0, true),
+				Entries: map[types.Hash]*storage.UtxoEntry{
+					types.Hash{V0: 0}: storage.NewUtxoEntry(false, 0, true),
 				},
 			},
 			err: false,
 		},
 		{
-			block: &bc.Block{
-				BlockHeader: &bc.BlockHeader{
+			block: &types.Block{
+				BlockHeader: &types.BlockHeader{
 					Height:            101,
-					TransactionStatus: bc.NewTransactionStatus(),
+					TransactionStatus: types.NewTransactionStatus(),
 				},
-				Transactions: []*bc.Tx{
-					&bc.Tx{
-						TxHeader: &bc.TxHeader{
-							ResultIds: []*bc.Hash{},
+				Transactions: []*types.Tx{
+					&types.Tx{
+						TxHeader: &types.TxHeader{
+							ResultIds: []*types.Hash{},
 						},
-						SpentOutputIDs: []bc.Hash{
-							bc.Hash{V0: 0},
+						SpentOutputIDs: []types.Hash{
+							types.Hash{V0: 0},
 						},
 						Entries: defaultEntry,
 					},
 				},
 			},
 			inputView: &UtxoViewpoint{
-				Entries: map[bc.Hash]*storage.UtxoEntry{
-					bc.Hash{V0: 0}: storage.NewUtxoEntry(true, 0, false),
+				Entries: map[types.Hash]*storage.UtxoEntry{
+					types.Hash{V0: 0}: storage.NewUtxoEntry(true, 0, false),
 				},
 			},
 			fetchView: &UtxoViewpoint{
-				Entries: map[bc.Hash]*storage.UtxoEntry{
-					bc.Hash{V0: 0}: storage.NewUtxoEntry(true, 0, true),
+				Entries: map[types.Hash]*storage.UtxoEntry{
+					types.Hash{V0: 0}: storage.NewUtxoEntry(true, 0, true),
 				},
 			},
 			err: false,
 		},
 		{
-			block: &bc.Block{
-				BlockHeader: &bc.BlockHeader{
+			block: &types.Block{
+				BlockHeader: &types.BlockHeader{
 					Height:            0,
-					TransactionStatus: bc.NewTransactionStatus(),
+					TransactionStatus: types.NewTransactionStatus(),
 				},
-				Transactions: []*bc.Tx{
-					&bc.Tx{
-						TxHeader: &bc.TxHeader{
-							ResultIds: []*bc.Hash{},
+				Transactions: []*types.Tx{
+					&types.Tx{
+						TxHeader: &types.TxHeader{
+							ResultIds: []*types.Hash{},
 						},
-						SpentOutputIDs: []bc.Hash{
-							bc.Hash{V0: 0},
+						SpentOutputIDs: []types.Hash{
+							types.Hash{V0: 0},
 						},
 						Entries: defaultEntry,
 					},
 				},
 			},
 			inputView: &UtxoViewpoint{
-				Entries: map[bc.Hash]*storage.UtxoEntry{
-					bc.Hash{V0: 0}: storage.NewUtxoEntry(true, 0, false),
+				Entries: map[types.Hash]*storage.UtxoEntry{
+					types.Hash{V0: 0}: storage.NewUtxoEntry(true, 0, false),
 				},
 			},
 			fetchView: &UtxoViewpoint{
-				Entries: map[bc.Hash]*storage.UtxoEntry{
-					bc.Hash{V0: 0}: storage.NewUtxoEntry(true, 0, true),
+				Entries: map[types.Hash]*storage.UtxoEntry{
+					types.Hash{V0: 0}: storage.NewUtxoEntry(true, 0, true),
 				},
 			},
 			err: true,
 		},
 		{
 			// output will be store
-			block: &bc.Block{
-				BlockHeader: &bc.BlockHeader{
-					TransactionStatus: bc.NewTransactionStatus(),
+			block: &types.Block{
+				BlockHeader: &types.BlockHeader{
+					TransactionStatus: types.NewTransactionStatus(),
 				},
-				Transactions: []*bc.Tx{
-					&bc.Tx{
-						TxHeader: &bc.TxHeader{
-							ResultIds: []*bc.Hash{
-								&bc.Hash{V0: 0},
+				Transactions: []*types.Tx{
+					&types.Tx{
+						TxHeader: &types.TxHeader{
+							ResultIds: []*types.Hash{
+								&types.Hash{V0: 0},
 							},
 						},
-						SpentOutputIDs: []bc.Hash{},
+						SpentOutputIDs: []types.Hash{},
 						Entries:        defaultEntry,
 					},
 				},
 			},
 			inputView: NewUtxoViewpoint(),
 			fetchView: &UtxoViewpoint{
-				Entries: map[bc.Hash]*storage.UtxoEntry{
-					bc.Hash{V0: 0}: storage.NewUtxoEntry(true, 0, false),
+				Entries: map[types.Hash]*storage.UtxoEntry{
+					types.Hash{V0: 0}: storage.NewUtxoEntry(true, 0, false),
 				},
 			},
 			err: false,
 		},
 		{
 			// apply gas only tx, non-btm asset spent input will not be spent
-			block: &bc.Block{
-				BlockHeader: &bc.BlockHeader{
-					TransactionStatus: bc.NewTransactionStatus(),
+			block: &types.Block{
+				BlockHeader: &types.BlockHeader{
+					TransactionStatus: types.NewTransactionStatus(),
 				},
-				Transactions: []*bc.Tx{
-					&bc.Tx{
-						TxHeader: &bc.TxHeader{
-							ResultIds: []*bc.Hash{},
+				Transactions: []*types.Tx{
+					&types.Tx{
+						TxHeader: &types.TxHeader{
+							ResultIds: []*types.Hash{},
 						},
-						SpentOutputIDs: []bc.Hash{
-							bc.Hash{V1: 0},
-							bc.Hash{V1: 1},
+						SpentOutputIDs: []types.Hash{
+							types.Hash{V1: 0},
+							types.Hash{V1: 1},
 						},
 						Entries: gasOnlyTxEntry,
 					},
 				},
 			},
 			inputView: &UtxoViewpoint{
-				Entries: map[bc.Hash]*storage.UtxoEntry{
-					bc.Hash{V1: 0}: storage.NewUtxoEntry(false, 0, false),
-					bc.Hash{V1: 1}: storage.NewUtxoEntry(false, 0, false),
+				Entries: map[types.Hash]*storage.UtxoEntry{
+					types.Hash{V1: 0}: storage.NewUtxoEntry(false, 0, false),
+					types.Hash{V1: 1}: storage.NewUtxoEntry(false, 0, false),
 				},
 			},
 			fetchView: &UtxoViewpoint{
-				Entries: map[bc.Hash]*storage.UtxoEntry{
-					bc.Hash{V1: 0}: storage.NewUtxoEntry(false, 0, true),
-					bc.Hash{V1: 1}: storage.NewUtxoEntry(false, 0, false),
+				Entries: map[types.Hash]*storage.UtxoEntry{
+					types.Hash{V1: 0}: storage.NewUtxoEntry(false, 0, true),
+					types.Hash{V1: 1}: storage.NewUtxoEntry(false, 0, false),
 				},
 			},
 			gasOnlyTx: true,
@@ -257,27 +257,27 @@ func TestApplyBlock(t *testing.T) {
 		},
 		{
 			// apply gas only tx, non-btm asset spent output will not be store
-			block: &bc.Block{
-				BlockHeader: &bc.BlockHeader{
-					TransactionStatus: bc.NewTransactionStatus(),
+			block: &types.Block{
+				BlockHeader: &types.BlockHeader{
+					TransactionStatus: types.NewTransactionStatus(),
 				},
-				Transactions: []*bc.Tx{
-					&bc.Tx{
-						TxHeader: &bc.TxHeader{
-							ResultIds: []*bc.Hash{
-								&bc.Hash{V1: 0},
-								&bc.Hash{V1: 1},
+				Transactions: []*types.Tx{
+					&types.Tx{
+						TxHeader: &types.TxHeader{
+							ResultIds: []*types.Hash{
+								&types.Hash{V1: 0},
+								&types.Hash{V1: 1},
 							},
 						},
-						SpentOutputIDs: []bc.Hash{},
+						SpentOutputIDs: []types.Hash{},
 						Entries:        gasOnlyTxEntry,
 					},
 				},
 			},
 			inputView: NewUtxoViewpoint(),
 			fetchView: &UtxoViewpoint{
-				Entries: map[bc.Hash]*storage.UtxoEntry{
-					bc.Hash{V1: 0}: storage.NewUtxoEntry(true, 0, false),
+				Entries: map[types.Hash]*storage.UtxoEntry{
+					types.Hash{V1: 0}: storage.NewUtxoEntry(true, 0, false),
 				},
 			},
 			gasOnlyTx: true,
@@ -301,24 +301,24 @@ func TestApplyBlock(t *testing.T) {
 
 func TestDetachBlock(t *testing.T) {
 	cases := []struct {
-		block     *bc.Block
+		block     *types.Block
 		inputView *UtxoViewpoint
 		fetchView *UtxoViewpoint
 		gasOnlyTx bool
 		err       bool
 	}{
 		{
-			block: &bc.Block{
-				BlockHeader: &bc.BlockHeader{
-					TransactionStatus: bc.NewTransactionStatus(),
+			block: &types.Block{
+				BlockHeader: &types.BlockHeader{
+					TransactionStatus: types.NewTransactionStatus(),
 				},
-				Transactions: []*bc.Tx{
-					&bc.Tx{
-						TxHeader: &bc.TxHeader{
-							ResultIds: []*bc.Hash{},
+				Transactions: []*types.Tx{
+					&types.Tx{
+						TxHeader: &types.TxHeader{
+							ResultIds: []*types.Hash{},
 						},
-						SpentOutputIDs: []bc.Hash{
-							bc.Hash{V0: 0},
+						SpentOutputIDs: []types.Hash{
+							types.Hash{V0: 0},
 						},
 						Entries: defaultEntry,
 					},
@@ -326,145 +326,145 @@ func TestDetachBlock(t *testing.T) {
 			},
 			inputView: NewUtxoViewpoint(),
 			fetchView: &UtxoViewpoint{
-				Entries: map[bc.Hash]*storage.UtxoEntry{
-					bc.Hash{V0: 0}: storage.NewUtxoEntry(false, 0, false),
+				Entries: map[types.Hash]*storage.UtxoEntry{
+					types.Hash{V0: 0}: storage.NewUtxoEntry(false, 0, false),
 				},
 			},
 			err: false,
 		},
 		{
-			block: &bc.Block{
-				BlockHeader: &bc.BlockHeader{
-					TransactionStatus: bc.NewTransactionStatus(),
+			block: &types.Block{
+				BlockHeader: &types.BlockHeader{
+					TransactionStatus: types.NewTransactionStatus(),
 				},
-				Transactions: []*bc.Tx{
-					&bc.Tx{
-						TxHeader: &bc.TxHeader{
-							ResultIds: []*bc.Hash{
-								&bc.Hash{V0: 0},
+				Transactions: []*types.Tx{
+					&types.Tx{
+						TxHeader: &types.TxHeader{
+							ResultIds: []*types.Hash{
+								&types.Hash{V0: 0},
 							},
 						},
-						SpentOutputIDs: []bc.Hash{},
+						SpentOutputIDs: []types.Hash{},
 						Entries:        defaultEntry,
 					},
 				},
 			},
 			inputView: NewUtxoViewpoint(),
 			fetchView: &UtxoViewpoint{
-				Entries: map[bc.Hash]*storage.UtxoEntry{
-					bc.Hash{V0: 0}: storage.NewUtxoEntry(false, 0, true),
+				Entries: map[types.Hash]*storage.UtxoEntry{
+					types.Hash{V0: 0}: storage.NewUtxoEntry(false, 0, true),
 				},
 			},
 			err: false,
 		},
 		{
-			block: &bc.Block{
-				BlockHeader: &bc.BlockHeader{
-					TransactionStatus: bc.NewTransactionStatus(),
+			block: &types.Block{
+				BlockHeader: &types.BlockHeader{
+					TransactionStatus: types.NewTransactionStatus(),
 				},
-				Transactions: []*bc.Tx{
-					&bc.Tx{
-						TxHeader: &bc.TxHeader{
-							ResultIds: []*bc.Hash{},
+				Transactions: []*types.Tx{
+					&types.Tx{
+						TxHeader: &types.TxHeader{
+							ResultIds: []*types.Hash{},
 						},
-						SpentOutputIDs: []bc.Hash{
-							bc.Hash{V0: 0},
+						SpentOutputIDs: []types.Hash{
+							types.Hash{V0: 0},
 						},
 						Entries: defaultEntry,
 					},
 				},
 			},
 			inputView: &UtxoViewpoint{
-				Entries: map[bc.Hash]*storage.UtxoEntry{
-					bc.Hash{V0: 0}: storage.NewUtxoEntry(false, 0, false),
+				Entries: map[types.Hash]*storage.UtxoEntry{
+					types.Hash{V0: 0}: storage.NewUtxoEntry(false, 0, false),
 				},
 			},
 			err: true,
 		},
 		{
-			block: &bc.Block{
-				BlockHeader: &bc.BlockHeader{
-					TransactionStatus: bc.NewTransactionStatus(),
+			block: &types.Block{
+				BlockHeader: &types.BlockHeader{
+					TransactionStatus: types.NewTransactionStatus(),
 				},
-				Transactions: []*bc.Tx{
-					&bc.Tx{
-						TxHeader: &bc.TxHeader{
-							ResultIds: []*bc.Hash{},
+				Transactions: []*types.Tx{
+					&types.Tx{
+						TxHeader: &types.TxHeader{
+							ResultIds: []*types.Hash{},
 						},
-						SpentOutputIDs: []bc.Hash{
-							bc.Hash{V0: 0},
+						SpentOutputIDs: []types.Hash{
+							types.Hash{V0: 0},
 						},
 						Entries: defaultEntry,
 					},
 				},
 			},
 			inputView: &UtxoViewpoint{
-				Entries: map[bc.Hash]*storage.UtxoEntry{
-					bc.Hash{V0: 0}: storage.NewUtxoEntry(false, 0, true),
+				Entries: map[types.Hash]*storage.UtxoEntry{
+					types.Hash{V0: 0}: storage.NewUtxoEntry(false, 0, true),
 				},
 			},
 			fetchView: &UtxoViewpoint{
-				Entries: map[bc.Hash]*storage.UtxoEntry{
-					bc.Hash{V0: 0}: storage.NewUtxoEntry(false, 0, false),
+				Entries: map[types.Hash]*storage.UtxoEntry{
+					types.Hash{V0: 0}: storage.NewUtxoEntry(false, 0, false),
 				},
 			},
 			err: false,
 		},
 		{
-			block: &bc.Block{
-				BlockHeader: &bc.BlockHeader{
-					TransactionStatus: bc.NewTransactionStatus(),
+			block: &types.Block{
+				BlockHeader: &types.BlockHeader{
+					TransactionStatus: types.NewTransactionStatus(),
 				},
-				Transactions: []*bc.Tx{
-					&bc.Tx{
-						TxHeader: &bc.TxHeader{
-							ResultIds: []*bc.Hash{},
+				Transactions: []*types.Tx{
+					&types.Tx{
+						TxHeader: &types.TxHeader{
+							ResultIds: []*types.Hash{},
 						},
-						SpentOutputIDs: []bc.Hash{
-							bc.Hash{V1: 0},
-							bc.Hash{V1: 1},
+						SpentOutputIDs: []types.Hash{
+							types.Hash{V1: 0},
+							types.Hash{V1: 1},
 						},
 						Entries: gasOnlyTxEntry,
 					},
 				},
 			},
 			inputView: &UtxoViewpoint{
-				Entries: map[bc.Hash]*storage.UtxoEntry{
-					bc.Hash{V1: 0}: storage.NewUtxoEntry(false, 0, true),
-					bc.Hash{V1: 1}: storage.NewUtxoEntry(false, 0, true),
+				Entries: map[types.Hash]*storage.UtxoEntry{
+					types.Hash{V1: 0}: storage.NewUtxoEntry(false, 0, true),
+					types.Hash{V1: 1}: storage.NewUtxoEntry(false, 0, true),
 				},
 			},
 			fetchView: &UtxoViewpoint{
-				Entries: map[bc.Hash]*storage.UtxoEntry{
-					bc.Hash{V1: 0}: storage.NewUtxoEntry(false, 0, false),
-					bc.Hash{V1: 1}: storage.NewUtxoEntry(false, 0, true),
+				Entries: map[types.Hash]*storage.UtxoEntry{
+					types.Hash{V1: 0}: storage.NewUtxoEntry(false, 0, false),
+					types.Hash{V1: 1}: storage.NewUtxoEntry(false, 0, true),
 				},
 			},
 			gasOnlyTx: true,
 			err:       false,
 		},
 		{
-			block: &bc.Block{
-				BlockHeader: &bc.BlockHeader{
-					TransactionStatus: bc.NewTransactionStatus(),
+			block: &types.Block{
+				BlockHeader: &types.BlockHeader{
+					TransactionStatus: types.NewTransactionStatus(),
 				},
-				Transactions: []*bc.Tx{
-					&bc.Tx{
-						TxHeader: &bc.TxHeader{
-							ResultIds: []*bc.Hash{
-								&bc.Hash{V1: 0},
-								&bc.Hash{V1: 1},
+				Transactions: []*types.Tx{
+					&types.Tx{
+						TxHeader: &types.TxHeader{
+							ResultIds: []*types.Hash{
+								&types.Hash{V1: 0},
+								&types.Hash{V1: 1},
 							},
 						},
-						SpentOutputIDs: []bc.Hash{},
+						SpentOutputIDs: []types.Hash{},
 						Entries:        gasOnlyTxEntry,
 					},
 				},
 			},
 			inputView: NewUtxoViewpoint(),
 			fetchView: &UtxoViewpoint{
-				Entries: map[bc.Hash]*storage.UtxoEntry{
-					bc.Hash{V1: 0}: storage.NewUtxoEntry(false, 0, true),
+				Entries: map[types.Hash]*storage.UtxoEntry{
+					types.Hash{V1: 0}: storage.NewUtxoEntry(false, 0, true),
 				},
 			},
 			gasOnlyTx: true,

@@ -11,8 +11,8 @@ import (
 
 	"github.com/bytom/consensus"
 	"github.com/bytom/event"
-	"github.com/bytom/protocol/bc"
-	"github.com/bytom/protocol/bc/types"
+	"github.com/clarenous/go-capsule/protocol/types"
+
 	"github.com/bytom/protocol/state"
 )
 
@@ -68,10 +68,10 @@ type TxPool struct {
 	lastUpdated     int64
 	mtx             sync.RWMutex
 	store           Store
-	pool            map[bc.Hash]*TxDesc
-	utxo            map[bc.Hash]*types.Tx
-	orphans         map[bc.Hash]*orphanTx
-	orphansByPrev   map[bc.Hash]map[bc.Hash]*orphanTx
+	pool            map[types.Hash]*TxDesc
+	utxo            map[types.Hash]*types.Tx
+	orphans         map[types.Hash]*orphanTx
+	orphansByPrev   map[types.Hash]map[types.Hash]*orphanTx
 	errCache        *lru.Cache
 	eventDispatcher *event.Dispatcher
 }
@@ -81,10 +81,10 @@ func NewTxPool(store Store, dispatcher *event.Dispatcher) *TxPool {
 	tp := &TxPool{
 		lastUpdated:     time.Now().Unix(),
 		store:           store,
-		pool:            make(map[bc.Hash]*TxDesc),
-		utxo:            make(map[bc.Hash]*types.Tx),
-		orphans:         make(map[bc.Hash]*orphanTx),
-		orphansByPrev:   make(map[bc.Hash]map[bc.Hash]*orphanTx),
+		pool:            make(map[types.Hash]*TxDesc),
+		utxo:            make(map[types.Hash]*types.Tx),
+		orphans:         make(map[types.Hash]*orphanTx),
+		orphansByPrev:   make(map[types.Hash]map[types.Hash]*orphanTx),
 		errCache:        lru.New(maxCachedErrTxs),
 		eventDispatcher: dispatcher,
 	}
@@ -93,7 +93,7 @@ func NewTxPool(store Store, dispatcher *event.Dispatcher) *TxPool {
 }
 
 // AddErrCache add a failed transaction record to lru cache
-func (tp *TxPool) AddErrCache(txHash *bc.Hash, err error) {
+func (tp *TxPool) AddErrCache(txHash *types.Hash, err error) {
 	tp.mtx.Lock()
 	defer tp.mtx.Unlock()
 
@@ -113,7 +113,7 @@ func (tp *TxPool) ExpireOrphan(now time.Time) {
 }
 
 // GetErrCache return the error of the transaction
-func (tp *TxPool) GetErrCache(txHash *bc.Hash) error {
+func (tp *TxPool) GetErrCache(txHash *types.Hash) error {
 	tp.mtx.Lock()
 	defer tp.mtx.Unlock()
 
@@ -125,7 +125,7 @@ func (tp *TxPool) GetErrCache(txHash *bc.Hash) error {
 }
 
 // RemoveTransaction remove a transaction from the pool
-func (tp *TxPool) RemoveTransaction(txHash *bc.Hash) {
+func (tp *TxPool) RemoveTransaction(txHash *types.Hash) {
 	tp.mtx.Lock()
 	defer tp.mtx.Unlock()
 
@@ -145,7 +145,7 @@ func (tp *TxPool) RemoveTransaction(txHash *bc.Hash) {
 }
 
 // GetTransaction return the TxDesc by hash
-func (tp *TxPool) GetTransaction(txHash *bc.Hash) (*TxDesc, error) {
+func (tp *TxPool) GetTransaction(txHash *types.Hash) (*TxDesc, error) {
 	tp.mtx.RLock()
 	defer tp.mtx.RUnlock()
 
@@ -170,7 +170,7 @@ func (tp *TxPool) GetTransactions() []*TxDesc {
 }
 
 // IsTransactionInPool check wheather a transaction in pool or not
-func (tp *TxPool) IsTransactionInPool(txHash *bc.Hash) bool {
+func (tp *TxPool) IsTransactionInPool(txHash *types.Hash) bool {
 	tp.mtx.RLock()
 	defer tp.mtx.RUnlock()
 
@@ -179,7 +179,7 @@ func (tp *TxPool) IsTransactionInPool(txHash *bc.Hash) bool {
 }
 
 // IsTransactionInErrCache check wheather a transaction in errCache or not
-func (tp *TxPool) IsTransactionInErrCache(txHash *bc.Hash) bool {
+func (tp *TxPool) IsTransactionInErrCache(txHash *types.Hash) bool {
 	tp.mtx.RLock()
 	defer tp.mtx.RUnlock()
 
@@ -188,7 +188,7 @@ func (tp *TxPool) IsTransactionInErrCache(txHash *bc.Hash) bool {
 }
 
 // HaveTransaction IsTransactionInErrCache check is  transaction in errCache or pool
-func (tp *TxPool) HaveTransaction(txHash *bc.Hash) bool {
+func (tp *TxPool) HaveTransaction(txHash *types.Hash) bool {
 	return tp.IsTransactionInPool(txHash) || tp.IsTransactionInErrCache(txHash)
 }
 
@@ -242,7 +242,7 @@ func (tp *TxPool) ProcessTransaction(tx *types.Tx, statusFail bool, height, fee 
 	return tp.processTransaction(tx, statusFail, height, fee)
 }
 
-func (tp *TxPool) addOrphan(txD *TxDesc, requireParents []*bc.Hash) error {
+func (tp *TxPool) addOrphan(txD *TxDesc, requireParents []*types.Hash) error {
 	if len(tp.orphans) >= maxOrphanNum {
 		return ErrPoolIsFull
 	}
@@ -251,7 +251,7 @@ func (tp *TxPool) addOrphan(txD *TxDesc, requireParents []*bc.Hash) error {
 	tp.orphans[txD.Tx.ID] = orphan
 	for _, hash := range requireParents {
 		if _, ok := tp.orphansByPrev[*hash]; !ok {
-			tp.orphansByPrev[*hash] = make(map[bc.Hash]*orphanTx)
+			tp.orphansByPrev[*hash] = make(map[types.Hash]*orphanTx)
 		}
 		tp.orphansByPrev[*hash][txD.Tx.ID] = orphan
 	}
@@ -283,13 +283,13 @@ func (tp *TxPool) addTransaction(txD *TxDesc) error {
 	return nil
 }
 
-func (tp *TxPool) checkOrphanUtxos(tx *types.Tx) ([]*bc.Hash, error) {
+func (tp *TxPool) checkOrphanUtxos(tx *types.Tx) ([]*types.Hash, error) {
 	view := state.NewUtxoViewpoint()
-	if err := tp.store.GetTransactionsUtxo(view, []*bc.Tx{tx.Tx}); err != nil {
+	if err := tp.store.GetTransactionsUtxo(view, []*types.Tx{tx.Tx}); err != nil {
 		return nil, err
 	}
 
-	hashes := []*bc.Hash{}
+	hashes := []*types.Hash{}
 	for _, hash := range tx.SpentOutputIDs {
 		if !view.CanSpend(&hash) && tp.utxo[hash] == nil {
 			hashes = append(hashes, &hash)
@@ -338,7 +338,7 @@ func (tp *TxPool) processOrphans(txD *TxDesc) {
 	}
 }
 
-func (tp *TxPool) removeOrphan(hash *bc.Hash) {
+func (tp *TxPool) removeOrphan(hash *types.Hash) {
 	orphan, ok := tp.orphans[*hash]
 	if !ok {
 		return

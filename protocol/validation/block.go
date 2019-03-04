@@ -8,8 +8,8 @@ import (
 	"github.com/bytom/consensus"
 	"github.com/bytom/consensus/difficulty"
 	"github.com/bytom/errors"
-	"github.com/bytom/protocol/bc"
-	"github.com/bytom/protocol/bc/types"
+	"github.com/clarenous/go-capsule/protocol/types"
+
 	"github.com/bytom/protocol/state"
 )
 
@@ -28,7 +28,7 @@ var (
 	errVersionRegression     = errors.New("version regression")
 )
 
-func checkBlockTime(b *bc.Block, parent *state.BlockNode) error {
+func checkBlockTime(b *types.Block, parent *state.BlockNode) error {
 	if b.Timestamp > uint64(time.Now().Unix())+consensus.MaxTimeOffsetSeconds {
 		return errBadTimestamp
 	}
@@ -39,7 +39,7 @@ func checkBlockTime(b *bc.Block, parent *state.BlockNode) error {
 	return nil
 }
 
-func checkCoinbaseAmount(b *bc.Block, amount uint64) error {
+func checkCoinbaseAmount(b *types.Block, amount uint64) error {
 	if len(b.Transactions) == 0 {
 		return errors.Wrap(ErrWrongCoinbaseTransaction, "block is empty")
 	}
@@ -61,7 +61,7 @@ func checkCoinbaseAmount(b *bc.Block, amount uint64) error {
 }
 
 // ValidateBlockHeader check the block's header
-func ValidateBlockHeader(b *bc.Block, parent *state.BlockNode) error {
+func ValidateBlockHeader(b *types.Block, parent *state.BlockNode) error {
 	if b.Version < BlockVersion {
 		return errors.WithDetailf(errVersionRegression, "previous block version %d, current block version %d", parent.Version, b.Version)
 	}
@@ -84,7 +84,7 @@ func ValidateBlockHeader(b *bc.Block, parent *state.BlockNode) error {
 }
 
 // ValidateBlock validates a block and the transactions within.
-func ValidateBlock(b *bc.Block, parent *state.BlockNode) error {
+func ValidateBlock(b *types.Block, parent *state.BlockNode) error {
 	startTime := time.Now()
 	if err := ValidateBlockHeader(b, parent); err != nil {
 		return err
@@ -92,7 +92,7 @@ func ValidateBlock(b *bc.Block, parent *state.BlockNode) error {
 
 	blockGasSum := uint64(0)
 	coinbaseAmount := consensus.BlockSubsidy(b.BlockHeader.Height)
-	b.TransactionStatus = bc.NewTransactionStatus()
+	b.TransactionStatus = types.NewTransactionStatus()
 
 	for i, tx := range b.Transactions {
 		gasStatus, err := ValidateTx(tx, b)

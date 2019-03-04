@@ -2,28 +2,28 @@ package protocol
 
 import (
 	"github.com/bytom/database/storage"
-	"github.com/bytom/protocol/bc"
-	"github.com/bytom/protocol/bc/types"
+	"github.com/clarenous/go-capsule/protocol/types"
+
 	"github.com/bytom/protocol/state"
 )
 
 // Store provides storage interface for blockchain data
 type Store interface {
-	BlockExist(*bc.Hash) bool
+	BlockExist(*types.Hash) bool
 
-	GetBlock(*bc.Hash) (*types.Block, error)
+	GetBlock(*types.Hash) (*types.Block, error)
 	GetStoreStatus() *BlockStoreState
-	GetTransactionStatus(*bc.Hash) (*bc.TransactionStatus, error)
-	GetTransactionsUtxo(*state.UtxoViewpoint, []*bc.Tx) error
-	GetUtxo(*bc.Hash) (*storage.UtxoEntry, error)
+	GetTransactionStatus(*types.Hash) (*types.TransactionStatus, error)
+	GetTransactionsUtxo(*state.UtxoViewpoint, []*types.Tx) error
+	GetUtxo(*types.Hash) (*storage.UtxoEntry, error)
 
 	LoadBlockIndex(uint64) (*state.BlockIndex, error)
-	SaveBlock(*types.Block, *bc.TransactionStatus) error
+	SaveBlock(*types.Block, *types.TransactionStatus) error
 	SaveChainStatus(*state.BlockNode, *state.UtxoViewpoint) error
 }
 
 // BlockStoreState represents the core's db status
 type BlockStoreState struct {
 	Height uint64
-	Hash   *bc.Hash
+	Hash   *types.Hash
 }

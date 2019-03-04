@@ -7,8 +7,8 @@ import (
 
 	"github.com/bytom/consensus"
 	"github.com/bytom/mining/tensority"
-	"github.com/bytom/protocol/bc"
-	"github.com/bytom/protocol/bc/types"
+	"github.com/clarenous/go-capsule/protocol/types"
+
 	"github.com/bytom/protocol/state"
 	"github.com/bytom/protocol/vm"
 	"github.com/bytom/protocol/vm/vmutil"
@@ -48,8 +48,8 @@ func TestCheckBlockTime(t *testing.T) {
 	}
 
 	parent := &state.BlockNode{Version: 1}
-	block := &bc.Block{
-		BlockHeader: &bc.BlockHeader{Version: 1},
+	block := &types.Block{
+		BlockHeader: &types.BlockHeader{Version: 1},
 	}
 
 	for i, c := range cases {
@@ -114,12 +114,12 @@ func TestValidateBlockHeader(t *testing.T) {
 
 	cases := []struct {
 		desc   string
-		block  *bc.Block
+		block  *types.Block
 		parent *state.BlockNode
 		err    error
 	}{
 		{
-			block: &bc.Block{BlockHeader: &bc.BlockHeader{
+			block: &types.Block{BlockHeader: &types.BlockHeader{
 				Version: 2,
 			}},
 			parent: &state.BlockNode{
@@ -128,7 +128,7 @@ func TestValidateBlockHeader(t *testing.T) {
 			err: errVersionRegression,
 		},
 		{
-			block: &bc.Block{BlockHeader: &bc.BlockHeader{
+			block: &types.Block{BlockHeader: &types.BlockHeader{
 				Version: 1,
 				Height:  20,
 			}},
@@ -140,7 +140,7 @@ func TestValidateBlockHeader(t *testing.T) {
 		},
 		{
 			desc: "the difficulty of the block is not equals to the next difficulty of parent block (blocktest#1008)",
-			block: &bc.Block{BlockHeader: &bc.BlockHeader{
+			block: &types.Block{BlockHeader: &types.BlockHeader{
 				Version: 1,
 				Height:  20,
 				Bits:    0,
@@ -154,27 +154,27 @@ func TestValidateBlockHeader(t *testing.T) {
 		},
 		{
 			desc: "the prev block hash not equals to the hash of parent (blocktest#1004)",
-			block: &bc.Block{BlockHeader: &bc.BlockHeader{
+			block: &types.Block{BlockHeader: &types.BlockHeader{
 				Version:         1,
 				Height:          20,
-				PreviousBlockId: &bc.Hash{V0: 18},
+				PreviousBlockId: &types.Hash{V0: 18},
 			}},
 			parent: &state.BlockNode{
 				Version: 1,
 				Height:  19,
-				Hash:    bc.Hash{V0: 19},
+				Hash:    types.Hash{V0: 19},
 			},
 			err: errMismatchedBlock,
 		},
 		{
 			desc: "check work proof fail (blocktest#1011)",
-			block: &bc.Block{
-				ID: bc.Hash{V0: 0},
-				BlockHeader: &bc.BlockHeader{
+			block: &types.Block{
+				ID: types.Hash{V0: 0},
+				BlockHeader: &types.BlockHeader{
 					Version:         1,
 					Height:          1,
 					Timestamp:       1523352601,
-					PreviousBlockId: &bc.Hash{V0: 0},
+					PreviousBlockId: &types.Hash{V0: 0},
 					Bits:            2305843009214532812,
 				},
 			},
@@ -182,20 +182,20 @@ func TestValidateBlockHeader(t *testing.T) {
 				Version:   1,
 				Height:    0,
 				Timestamp: 1523352600,
-				Hash:      bc.Hash{V0: 0},
-				Seed:      &bc.Hash{V1: 1},
+				Hash:      types.Hash{V0: 0},
+				Seed:      &types.Hash{V1: 1},
 				Bits:      2305843009214532812,
 			},
 			err: errWorkProof,
 		},
 		{
-			block: &bc.Block{
-				ID: bc.Hash{V0: 1},
-				BlockHeader: &bc.BlockHeader{
+			block: &types.Block{
+				ID: types.Hash{V0: 1},
+				BlockHeader: &types.BlockHeader{
 					Version:         1,
 					Height:          1,
 					Timestamp:       1523352601,
-					PreviousBlockId: &bc.Hash{V0: 0},
+					PreviousBlockId: &types.Hash{V0: 0},
 					Bits:            2305843009214532812,
 				},
 			},
@@ -203,17 +203,17 @@ func TestValidateBlockHeader(t *testing.T) {
 				Version:   1,
 				Height:    0,
 				Timestamp: 1523352600,
-				Hash:      bc.Hash{V0: 0},
-				Seed:      &bc.Hash{V1: 1},
+				Hash:      types.Hash{V0: 0},
+				Seed:      &types.Hash{V1: 1},
 				Bits:      2305843009214532812,
 			},
 			err: nil,
 		},
 		{
 			desc: "version greater than 1 (blocktest#1001)",
-			block: &bc.Block{
-				ID: bc.Hash{V0: 1},
-				BlockHeader: &bc.BlockHeader{
+			block: &types.Block{
+				ID: types.Hash{V0: 1},
+				BlockHeader: &types.BlockHeader{
 					Version: 2,
 				},
 			},
@@ -224,9 +224,9 @@ func TestValidateBlockHeader(t *testing.T) {
 		},
 		{
 			desc: "version equals 0 (blocktest#1002)",
-			block: &bc.Block{
-				ID: bc.Hash{V0: 1},
-				BlockHeader: &bc.BlockHeader{
+			block: &types.Block{
+				ID: types.Hash{V0: 1},
+				BlockHeader: &types.BlockHeader{
 					Version: 0,
 				},
 			},
@@ -237,9 +237,9 @@ func TestValidateBlockHeader(t *testing.T) {
 		},
 		{
 			desc: "version equals max uint64 (blocktest#1003)",
-			block: &bc.Block{
-				ID: bc.Hash{V0: 1},
-				BlockHeader: &bc.BlockHeader{
+			block: &types.Block{
+				ID: types.Hash{V0: 1},
+				BlockHeader: &types.BlockHeader{
 					Version: math.MaxUint64,
 				},
 			},
@@ -264,23 +264,23 @@ func TestValidateBlock(t *testing.T) {
 	cp, _ := vmutil.DefaultCoinbaseProgram()
 	cases := []struct {
 		desc   string
-		block  *bc.Block
+		block  *types.Block
 		parent *state.BlockNode
 		err    error
 	}{
 		{
 			desc: "The calculated transaction merkel root hash is not equals to the hash of the block header (blocktest#1009)",
-			block: &bc.Block{
-				ID: bc.Hash{V0: 1},
-				BlockHeader: &bc.BlockHeader{
+			block: &types.Block{
+				ID: types.Hash{V0: 1},
+				BlockHeader: &types.BlockHeader{
 					Version:          1,
 					Height:           1,
 					Timestamp:        1523352601,
-					PreviousBlockId:  &bc.Hash{V0: 0},
+					PreviousBlockId:  &types.Hash{V0: 0},
 					Bits:             2305843009214532812,
-					TransactionsRoot: &bc.Hash{V0: 1},
+					TransactionsRoot: &types.Hash{V0: 1},
 				},
-				Transactions: []*bc.Tx{
+				Transactions: []*types.Tx{
 					types.MapTx(&types.TxData{
 						Version:        1,
 						SerializedSize: 1,
@@ -293,26 +293,26 @@ func TestValidateBlock(t *testing.T) {
 				Version:   1,
 				Height:    0,
 				Timestamp: 1523352600,
-				Hash:      bc.Hash{V0: 0},
-				Seed:      &bc.Hash{V1: 1},
+				Hash:      types.Hash{V0: 0},
+				Seed:      &types.Hash{V1: 1},
 				Bits:      2305843009214532812,
 			},
 			err: errMismatchedMerkleRoot,
 		},
 		{
 			desc: "The calculated transaction status merkel root hash is not equals to the hash of the block header (blocktest#1009)",
-			block: &bc.Block{
-				ID: bc.Hash{V0: 1},
-				BlockHeader: &bc.BlockHeader{
+			block: &types.Block{
+				ID: types.Hash{V0: 1},
+				BlockHeader: &types.BlockHeader{
 					Version:               1,
 					Height:                1,
 					Timestamp:             1523352601,
-					PreviousBlockId:       &bc.Hash{V0: 0},
+					PreviousBlockId:       &types.Hash{V0: 0},
 					Bits:                  2305843009214532812,
-					TransactionsRoot:      &bc.Hash{V0: 6294987741126419124, V1: 12520373106916389157, V2: 5040806596198303681, V3: 1151748423853876189},
-					TransactionStatusHash: &bc.Hash{V0: 1},
+					TransactionsRoot:      &types.Hash{V0: 6294987741126419124, V1: 12520373106916389157, V2: 5040806596198303681, V3: 1151748423853876189},
+					TransactionStatusHash: &types.Hash{V0: 1},
 				},
-				Transactions: []*bc.Tx{
+				Transactions: []*types.Tx{
 					types.MapTx(&types.TxData{
 						Version:        1,
 						SerializedSize: 1,
@@ -325,24 +325,24 @@ func TestValidateBlock(t *testing.T) {
 				Version:   1,
 				Height:    0,
 				Timestamp: 1523352600,
-				Hash:      bc.Hash{V0: 0},
-				Seed:      &bc.Hash{V1: 1},
+				Hash:      types.Hash{V0: 0},
+				Seed:      &types.Hash{V1: 1},
 				Bits:      2305843009214532812,
 			},
 			err: errMismatchedMerkleRoot,
 		},
 		{
 			desc: "the coinbase amount is less than the real coinbase amount (txtest#1014)",
-			block: &bc.Block{
-				ID: bc.Hash{V0: 1},
-				BlockHeader: &bc.BlockHeader{
+			block: &types.Block{
+				ID: types.Hash{V0: 1},
+				BlockHeader: &types.BlockHeader{
 					Version:         1,
 					Height:          1,
 					Timestamp:       1523352601,
-					PreviousBlockId: &bc.Hash{V0: 0},
+					PreviousBlockId: &types.Hash{V0: 0},
 					Bits:            2305843009214532812,
 				},
-				Transactions: []*bc.Tx{
+				Transactions: []*types.Tx{
 					types.MapTx(&types.TxData{
 						Version:        1,
 						SerializedSize: 1,
@@ -361,8 +361,8 @@ func TestValidateBlock(t *testing.T) {
 				Version:   1,
 				Height:    0,
 				Timestamp: 1523352600,
-				Hash:      bc.Hash{V0: 0},
-				Seed:      &bc.Hash{V1: 1},
+				Hash:      types.Hash{V0: 0},
+				Seed:      &types.Hash{V1: 1},
 				Bits:      2305843009214532812,
 			},
 			err: ErrWrongCoinbaseTransaction,
@@ -386,21 +386,21 @@ func TestGasOverBlockLimit(t *testing.T) {
 		Version:   1,
 		Height:    0,
 		Timestamp: 1523352600,
-		Hash:      bc.Hash{V0: 0},
-		Seed:      &bc.Hash{V1: 1},
+		Hash:      types.Hash{V0: 0},
+		Seed:      &types.Hash{V1: 1},
 		Bits:      2305843009214532812,
 	}
-	block := &bc.Block{
-		ID: bc.Hash{V0: 1},
-		BlockHeader: &bc.BlockHeader{
+	block := &types.Block{
+		ID: types.Hash{V0: 1},
+		BlockHeader: &types.BlockHeader{
 			Version:          1,
 			Height:           1,
 			Timestamp:        1523352601,
-			PreviousBlockId:  &bc.Hash{V0: 0},
+			PreviousBlockId:  &types.Hash{V0: 0},
 			Bits:             2305843009214532812,
-			TransactionsRoot: &bc.Hash{V0: 1},
+			TransactionsRoot: &types.Hash{V0: 1},
 		},
-		Transactions: []*bc.Tx{
+		Transactions: []*types.Tx{
 			types.MapTx(&types.TxData{
 				Version:        1,
 				SerializedSize: 1,
@@ -437,22 +437,22 @@ func TestSetTransactionStatus(t *testing.T) {
 		Version:   1,
 		Height:    0,
 		Timestamp: 1523352600,
-		Hash:      bc.Hash{V0: 0},
-		Seed:      &bc.Hash{V1: 1},
+		Hash:      types.Hash{V0: 0},
+		Seed:      &types.Hash{V1: 1},
 		Bits:      2305843009214532812,
 	}
-	block := &bc.Block{
-		ID: bc.Hash{V0: 1},
-		BlockHeader: &bc.BlockHeader{
+	block := &types.Block{
+		ID: types.Hash{V0: 1},
+		BlockHeader: &types.BlockHeader{
 			Version:               1,
 			Height:                1,
 			Timestamp:             1523352601,
-			PreviousBlockId:       &bc.Hash{V0: 0},
+			PreviousBlockId:       &types.Hash{V0: 0},
 			Bits:                  2305843009214532812,
-			TransactionsRoot:      &bc.Hash{V0: 3413931728524254295, V1: 300490676707850231, V2: 1886132055969225110, V3: 10216139531293906088},
-			TransactionStatusHash: &bc.Hash{V0: 8682965660674182538, V1: 8424137560837623409, V2: 6979974817894224946, V3: 4673809519342015041},
+			TransactionsRoot:      &types.Hash{V0: 3413931728524254295, V1: 300490676707850231, V2: 1886132055969225110, V3: 10216139531293906088},
+			TransactionStatusHash: &types.Hash{V0: 8682965660674182538, V1: 8424137560837623409, V2: 6979974817894224946, V3: 4673809519342015041},
 		},
-		Transactions: []*bc.Tx{
+		Transactions: []*types.Tx{
 			types.MapTx(&types.TxData{
 				Version:        1,
 				SerializedSize: 1,
@@ -464,11 +464,11 @@ func TestSetTransactionStatus(t *testing.T) {
 				SerializedSize: 1,
 				Inputs: []*types.TxInput{
 					types.NewSpendInput([][]byte{}, *newHash(8), *consensus.BTMAssetID, 100000000, 0, cp),
-					types.NewSpendInput([][]byte{}, *newHash(8), bc.AssetID{V0: 1}, 1000, 0, []byte{byte(vm.OP_FALSE)}),
+					types.NewSpendInput([][]byte{}, *newHash(8), types.AssetID{V0: 1}, 1000, 0, []byte{byte(vm.OP_FALSE)}),
 				},
 				Outputs: []*types.TxOutput{
 					types.NewTxOutput(*consensus.BTMAssetID, 888, cp),
-					types.NewTxOutput(bc.AssetID{V0: 1}, 1000, cp),
+					types.NewTxOutput(types.AssetID{V0: 1}, 1000, cp),
 				},
 			}),
 			types.MapTx(&types.TxData{
@@ -504,7 +504,7 @@ func TestSetTransactionStatus(t *testing.T) {
 func iniTtensority() {
 	// add (hash, seed) --> (tensority hash) to the  tensority cache for avoid
 	// real matrix calculate cost.
-	tensority.AIHash.AddCache(&bc.Hash{V0: 0}, &bc.Hash{}, testutil.MaxHash)
-	tensority.AIHash.AddCache(&bc.Hash{V0: 1}, &bc.Hash{}, testutil.MinHash)
-	tensority.AIHash.AddCache(&bc.Hash{V0: 1}, consensus.InitialSeed, testutil.MinHash)
+	tensority.AIHash.AddCache(&types.Hash{V0: 0}, &types.Hash{}, testutil.MaxHash)
+	tensority.AIHash.AddCache(&types.Hash{V0: 1}, &types.Hash{}, testutil.MinHash)
+	tensority.AIHash.AddCache(&types.Hash{V0: 1}, consensus.InitialSeed, testutil.MinHash)
 }
