@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/bytom/consensus"
-	"github.com/bytom/consensus/segwit"
-	"github.com/bytom/errors"
-	"github.com/bytom/math/checked"
+	"github.com/clarenous/go-capsule/consensus"
+	"github.com/clarenous/go-capsule/consensus/segwit"
+	"github.com/clarenous/go-capsule/errors"
+	"github.com/clarenous/go-capsule/math/checked"
 	"github.com/clarenous/go-capsule/protocol/types"
 	"github.com/bytom/protocol/vm"
 )

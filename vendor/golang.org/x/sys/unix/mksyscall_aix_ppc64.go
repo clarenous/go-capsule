@@ -37,7 +37,7 @@ func asyscall(...) (n int, err error) {
 }
 
 zsyscall_aix_ppc64_gc.go
-//go:cgo_import_dynamic libc_asyscall asyscall "libc.a/shr_64.o"
+//go:cgo_import_dynamic libc_asyscall asyscall "litypes.a/shr_64.o"
 //go:linkname libc_asyscall libc_asyscall
 var asyscall syscallFunc
 
@@ -288,7 +288,7 @@ func main() {
 			}
 			// GC Library name
 			if modname == "" {
-				modname = "libc.a/shr_64.o"
+				modname = "litypes.a/shr_64.o"
 			} else {
 				fmt.Fprintf(os.Stderr, "%s: only syscall using libc are available\n", funct)
 				os.Exit(1)

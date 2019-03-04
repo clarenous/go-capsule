@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bytom/errors"
+	"github.com/clarenous/go-capsule/errors"
 	"github.com/clarenous/go-capsule/protocol/types"
 
 	"github.com/bytom/protocol/vm"

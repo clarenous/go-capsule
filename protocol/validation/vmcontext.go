@@ -3,9 +3,9 @@ package validation
 import (
 	"bytes"
 
-	"github.com/bytom/consensus/segwit"
-	"github.com/bytom/crypto/sha3pool"
-	"github.com/bytom/errors"
+	"github.com/clarenous/go-capsule/consensus/segwit"
+	"github.com/clarenous/go-capsule/crypto/sha3pool"
+	"github.com/clarenous/go-capsule/errors"
 	"github.com/clarenous/go-capsule/protocol/types"
 	"github.com/bytom/protocol/vm"
 )

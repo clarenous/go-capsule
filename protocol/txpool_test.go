@@ -6,13 +6,13 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 
-	"github.com/bytom/consensus"
-	"github.com/bytom/database/storage"
-	"github.com/bytom/event"
+	"github.com/clarenous/go-capsule/consensus"
+	"github.com/clarenous/go-capsule/database/storage"
+	"github.com/clarenous/go-capsule/event"
 	"github.com/clarenous/go-capsule/protocol/types"
 
 	"github.com/clarenous/go-capsule/protocol/state"
-	"github.com/bytom/testutil"
+	"github.com/clarenous/go-capsule/testutil"
 )
 
 var testTxs = []*types.Tx{

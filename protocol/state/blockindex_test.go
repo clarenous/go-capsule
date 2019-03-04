@@ -4,8 +4,8 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/bytom/consensus"
-	"github.com/bytom/consensus/difficulty"
+	"github.com/clarenous/go-capsule/consensus"
+	"github.com/clarenous/go-capsule/consensus/difficulty"
 	"github.com/clarenous/go-capsule/protocol/types"
 
 )

@@ -3,9 +3,9 @@ package protocol
 import (
 	"testing"
 
-	"github.com/bytom/config"
+	"github.com/clarenous/go-capsule/config"
 	"github.com/clarenous/go-capsule/protocol/state"
-	"github.com/bytom/testutil"
+	"github.com/clarenous/go-capsule/testutil"
 )
 
 func TestCalcReorganizeNodes(t *testing.T) {

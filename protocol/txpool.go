@@ -9,8 +9,8 @@ import (
 	"github.com/golang/groupcache/lru"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/bytom/consensus"
-	"github.com/bytom/event"
+	"github.com/clarenous/go-capsule/consensus"
+	"github.com/clarenous/go-capsule/event"
 	"github.com/clarenous/go-capsule/protocol/types"
 
 	"github.com/clarenous/go-capsule/protocol/state"

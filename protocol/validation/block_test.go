@@ -5,14 +5,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bytom/consensus"
+	"github.com/clarenous/go-capsule/consensus"
 	"github.com/bytom/mining/tensority"
 	"github.com/clarenous/go-capsule/protocol/types"
 
 	"github.com/clarenous/go-capsule/protocol/state"
 	"github.com/bytom/protocol/vm"
 	"github.com/bytom/protocol/vm/vmutil"
-	"github.com/bytom/testutil"
+	"github.com/clarenous/go-capsule/testutil"
 )
 
 func TestCheckBlockTime(t *testing.T) {

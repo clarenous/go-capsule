@@ -6,9 +6,9 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/bytom/common"
-	"github.com/bytom/consensus"
-	"github.com/bytom/consensus/difficulty"
+	"github.com/clarenous/go-capsule/common"
+	"github.com/clarenous/go-capsule/consensus"
+	"github.com/clarenous/go-capsule/consensus/difficulty"
 	"github.com/clarenous/go-capsule/protocol/types"
 
 )

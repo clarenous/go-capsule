@@ -4,7 +4,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/bytom/errors"
+	"github.com/clarenous/go-capsule/errors"
 	"github.com/clarenous/go-capsule/protocol/types"
 
 	"github.com/clarenous/go-capsule/protocol/state"

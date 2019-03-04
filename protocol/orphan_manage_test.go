@@ -6,7 +6,7 @@ import (
 
 	"github.com/clarenous/go-capsule/protocol/types"
 
-	"github.com/bytom/testutil"
+	"github.com/clarenous/go-capsule/testutil"
 )
 
 var testBlocks = []*types.Block{

@@ -3,10 +3,10 @@ package state
 import (
 	"testing"
 
-	"github.com/bytom/consensus"
-	"github.com/bytom/database/storage"
+	"github.com/clarenous/go-capsule/consensus"
+	"github.com/clarenous/go-capsule/database/storage"
 	"github.com/clarenous/go-capsule/protocol/types"
-	"github.com/bytom/testutil"
+	"github.com/clarenous/go-capsule/testutil"
 )
 
 var defaultEntry = map[types.Hash]types.Entry{

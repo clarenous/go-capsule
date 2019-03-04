@@ -1,7 +1,7 @@
 package protocol
 
 import (
-	"github.com/bytom/database/storage"
+	"github.com/clarenous/go-capsule/database/storage"
 	"github.com/clarenous/go-capsule/protocol/types"
 
 	"github.com/clarenous/go-capsule/protocol/state"

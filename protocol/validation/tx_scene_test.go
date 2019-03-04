@@ -5,7 +5,7 @@ import (
 	"math"
 	"testing"
 
-	"github.com/bytom/consensus"
+	"github.com/clarenous/go-capsule/consensus"
 	"github.com/clarenous/go-capsule/protocol/types"
 
 	"github.com/bytom/protocol/vm"

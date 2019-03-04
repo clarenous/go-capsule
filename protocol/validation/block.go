@@ -5,9 +5,9 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/bytom/consensus"
-	"github.com/bytom/consensus/difficulty"
-	"github.com/bytom/errors"
+	"github.com/clarenous/go-capsule/consensus"
+	"github.com/clarenous/go-capsule/consensus/difficulty"
+	"github.com/clarenous/go-capsule/errors"
 	"github.com/clarenous/go-capsule/protocol/types"
 
 	"github.com/clarenous/go-capsule/protocol/state"

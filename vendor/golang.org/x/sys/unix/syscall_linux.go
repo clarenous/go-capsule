@@ -1560,7 +1560,7 @@ func Faccessat(dirfd int, path string, mode uint32, flags int) (err error) {
 
 	// The Linux kernel faccessat system call does not take any flags.
 	// The glibc faccessat implements the flags itself; see
-	// https://sourceware.org/git/?p=glibc.git;a=blob;f=sysdeps/unix/sysv/linux/faccessat.c;hb=HEAD
+	// https://sourceware.org/git/?p=glitypes.git;a=blob;f=sysdeps/unix/sysv/linux/faccessat.c;hb=HEAD
 	// Because people naturally expect syscall.Faccessat to act
 	// like C faccessat, we do the same.
 

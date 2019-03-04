@@ -3,8 +3,8 @@ package state
 import (
 	"errors"
 
-	"github.com/bytom/consensus"
-	"github.com/bytom/database/storage"
+	"github.com/clarenous/go-capsule/consensus"
+	"github.com/clarenous/go-capsule/database/storage"
 	"github.com/clarenous/go-capsule/protocol/types"
 )
 
