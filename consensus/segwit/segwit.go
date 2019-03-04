@@ -2,7 +2,7 @@ package segwit
 
 import (
 	"errors"
-	"github.com/clarenous/protocol/vm"
+	"github.com/clarenous/go-capsule/protocol/vm"
 
 	"github.com/clarenous/go-capsule/consensus"
 	"github.com/clarenous/go-capsule/protocol/txscript"
