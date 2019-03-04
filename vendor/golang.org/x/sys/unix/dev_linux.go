@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 
 // Functions to access/create device major and minor numbers matching the
-// encoding used by the Linux kernel and glitypes.
+// encoding used by the Linux kernel and glibc.
 //
 // The information below is extracted and adapted from bits/sysmacros.h in the
 // glibc sources:

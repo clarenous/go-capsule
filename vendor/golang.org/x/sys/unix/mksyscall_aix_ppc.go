@@ -223,7 +223,7 @@ func main() {
 			// So file name.
 			if *aix {
 				if modname == "" {
-					modname = "litypes.a/shr_64.o"
+					modname = "libc.a/shr_64.o"
 				} else {
 					fmt.Fprintf(os.Stderr, "%s: only syscall using libc are available\n", funct)
 					os.Exit(1)

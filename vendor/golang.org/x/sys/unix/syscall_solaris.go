@@ -685,7 +685,7 @@ func Sendfile(outfd int, infd int, offset *int64, count int) (written int, err e
 //sys	Ftruncate(fd int, length int64) (err error)
 //sys	Umask(mask int) (oldmask int)
 //sysnb	Uname(buf *Utsname) (err error)
-//sys	Unmount(target string, flags int) (err error) = litypes.umount
+//sys	Unmount(target string, flags int) (err error) = libc.umount
 //sys	Unlink(path string) (err error)
 //sys	Unlinkat(dirfd int, path string, flags int) (err error)
 //sys	Ustat(dev int, ubuf *Ustat_t) (err error)
