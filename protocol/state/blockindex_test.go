@@ -5,9 +5,8 @@ import (
 	"testing"
 
 	"github.com/clarenous/go-capsule/consensus"
-	"github.com/clarenous/go-capsule/consensus/difficulty"
+	"github.com/clarenous/go-capsule/consensus/algorithm/pow/difficulty"
 	"github.com/clarenous/go-capsule/protocol/types"
-
 )
 
 func TestCalcPastMedianTime(t *testing.T) {

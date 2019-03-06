@@ -8,9 +8,8 @@ import (
 
 	"github.com/clarenous/go-capsule/common"
 	"github.com/clarenous/go-capsule/consensus"
-	"github.com/clarenous/go-capsule/consensus/difficulty"
+	"github.com/clarenous/go-capsule/consensus/algorithm/pow/difficulty"
 	"github.com/clarenous/go-capsule/protocol/types"
-
 )
 
 // approxNodesPerDay is an approximation of the number of new blocks there are
@@ -21,7 +20,7 @@ const approxNodesPerDay = 24 * 24
 // aid in selecting the best chain to be the main chain.
 type BlockNode struct {
 	Parent  *BlockNode // parent is the parent block for this node.
-	Hash    types.Hash    // hash of the block.
+	Hash    types.Hash // hash of the block.
 	WorkSum *big.Int   // total amount of work in the chain up to
 
 	Version               uint64
@@ -64,14 +63,14 @@ func (node *BlockNode) BlockHeader() *types.BlockHeader {
 		previousBlockHash = node.Parent.Hash
 	}
 	return &types.BlockHeader{
-		Version:           node.Version,
-		Height:            node.Height,
-		Timestamp:         node.Timestamp,
-		Previous: previousBlockHash,
-		TransactionRoot:node.TransactionRoot,
-		Proof:types.BlockProof{
-			Nonce:node.Nonce,
-			Target:node.Target,
+		Version:         node.Version,
+		Height:          node.Height,
+		Timestamp:       node.Timestamp,
+		Previous:        previousBlockHash,
+		TransactionRoot: node.TransactionRoot,
+		Proof: types.BlockProof{
+			Nonce:  node.Nonce,
+			Target: node.Target,
 		},
 	}
 }

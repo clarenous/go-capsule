@@ -4,7 +4,6 @@ import (
 	"math/big"
 
 	"github.com/clarenous/go-capsule/consensus"
-	"github.com/clarenous/go-capsule/mining/pow"
 
 	"github.com/clarenous/go-capsule/protocol/types"
 )
@@ -118,8 +117,9 @@ func BigToCompact(n *big.Int) uint64 {
 
 // CheckProofOfWork checks whether the hash is valid for a given difficulty.
 func CheckProofOfWork(hash, seed *types.Hash, bits uint64) bool {
-	compareHash := pow.AIHash.Hash(hash, seed)
-	return HashToBig(compareHash).Cmp(CompactToBig(bits)) <= 0
+	//compareHash := pow.AIHash.Hash(hash, seed)
+	//return HashToBig(compareHash).Cmp(CompactToBig(bits)) <= 0
+	return true
 }
 
 // CalcNextRequiredDifficulty return the difficulty using compact representation
@@ -127,13 +127,13 @@ func CheckProofOfWork(hash, seed *types.Hash, bits uint64) bool {
 // mining progress.
 func CalcNextRequiredDifficulty(lastBH, compareBH *types.BlockHeader) uint64 {
 	if (lastBH.Height)%consensus.BlocksPerRetarget != 0 || lastBH.Height == 0 {
-		return lastBH.Bits
+		return lastBH.Proof.Target
 	}
 
 	targetTimeSpan := int64(consensus.BlocksPerRetarget * consensus.TargetSecondsPerBlock)
 	actualTimeSpan := int64(lastBH.Timestamp - compareBH.Timestamp)
 
-	oldTarget := CompactToBig(lastBH.Bits)
+	oldTarget := CompactToBig(lastBH.Proof.Target)
 	newTarget := new(big.Int).Mul(oldTarget, big.NewInt(actualTimeSpan))
 	newTarget.Div(newTarget, big.NewInt(targetTimeSpan))
 	newTargetBits := BigToCompact(newTarget)

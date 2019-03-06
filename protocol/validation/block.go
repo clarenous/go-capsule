@@ -6,7 +6,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/clarenous/go-capsule/consensus"
-	"github.com/clarenous/go-capsule/consensus/difficulty"
+	"github.com/clarenous/go-capsule/consensus/algorithm/pow/difficulty"
 	"github.com/clarenous/go-capsule/errors"
 	"github.com/clarenous/go-capsule/protocol/types"
 

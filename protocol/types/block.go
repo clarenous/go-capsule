@@ -14,6 +14,7 @@ type BlockHeader struct {
 	Timestamp       uint64
 	Previous        Hash
 	TransactionRoot Hash
+	WitnessRoot     Hash
 	Proof           BlockProof
 }
 

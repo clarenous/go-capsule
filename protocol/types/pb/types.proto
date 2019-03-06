@@ -1,4 +1,7 @@
 syntax = "proto3";
+
+import "google/protobuf/any.proto";
+
 package typespb;
 
 // Hash (32 bytes)
@@ -17,19 +20,14 @@ message Block {
 
 // Block Header
 message BlockHeader {
-    Hash   chain_id         = 1;
-    uint64 version          = 2;
-    uint64 height           = 3;
-    uint64 timestamp        = 4;
-    Hash   previous         = 5;
-    Hash   transaction_root = 6;
-    Proof  proof            = 7;
-}
-
-// Block Proof
-message Proof {
-    uint64 target = 1;
-    uint64 nonce  = 2;
+    Hash                chain_id         = 1;
+    uint64              version          = 2;
+    uint64              height           = 3;
+    uint64              timestamp        = 4;
+    Hash                previous         = 5;
+    Hash                transaction_root = 6;
+    Hash                witness_root     = 7;
+    google.protobuf.Any proof            = 8;
 }
 
 // Transaction
