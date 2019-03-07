@@ -57,12 +57,6 @@ func NewChain(store Store, txPool *TxPool) (*Chain, error) {
 
 func (c *Chain) initChainStatus() error {
 	genesisBlock := config.GenesisBlock()
-	txStatus := types.NewTransactionStatus()
-	for i := range genesisBlock.Transactions {
-		if err := txStatus.SetStatus(i, false); err != nil {
-			return err
-		}
-	}
 
 	if err := c.store.SaveBlock(genesisBlock, txStatus); err != nil {
 		return err

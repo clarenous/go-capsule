@@ -13,7 +13,6 @@ type Store interface {
 
 	GetBlock(*types.Hash) (*types.Block, error)
 	GetStoreStatus() *BlockStoreState
-	GetTransactionStatus(*types.Hash) (*types.TransactionStatus, error)
 	GetTransactionsUtxo(*state.UtxoViewpoint, []*types.Tx) error
 	GetUtxo(*types.Hash) (*storage.UtxoEntry, error)
 

@@ -1,5 +1,7 @@
 package types
 
+import ca "github.com/clarenous/go-capsule/consensus/algorithm"
+
 // Block
 type Block struct {
 	BlockHeader
@@ -15,13 +17,7 @@ type BlockHeader struct {
 	Previous        Hash
 	TransactionRoot Hash
 	WitnessRoot     Hash
-	Proof           BlockProof
-}
-
-// Block Proof
-type BlockProof struct {
-	Target uint64
-	Nonce  uint64
+	Proof           ca.Proof
 }
 
 func (bh *BlockHeader) bytesForID() []byte {

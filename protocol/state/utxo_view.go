@@ -62,13 +62,9 @@ func (view *UtxoViewpoint) ApplyTransaction(block *types.Block, tx *types.Tx, st
 	return nil
 }
 
-func (view *UtxoViewpoint) ApplyBlock(block *types.Block, txStatus *types.TransactionStatus) error {
-	for i, tx := range block.Transactions {
-		statusFail, err := txStatus.GetStatus(i)
-		if err != nil {
-			return err
-		}
-		if err := view.ApplyTransaction(block, tx, statusFail); err != nil {
+func (view *UtxoViewpoint) ApplyBlock(block *types.Block) error {
+	for _, tx := range block.Transactions {
+		if err := view.ApplyTransaction(block, tx); err != nil {
 			return err
 		}
 	}

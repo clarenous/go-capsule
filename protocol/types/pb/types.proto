@@ -47,8 +47,9 @@ message Tx {
         bytes  lock_script = 2;
     }
     message Evidence {
-        bytes  digest = 1;
-        bytes  source = 2;
+        bytes  digest       = 1;
+        bytes  source       = 2;
+        bytes  valid_script = 3;
     }
     uint64            version   = 1;
     repeated TxIn     inputs    = 2;

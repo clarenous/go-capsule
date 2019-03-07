@@ -2,6 +2,8 @@ package state
 
 import (
 	"errors"
+	ca "github.com/clarenous/go-capsule/consensus/algorithm"
+	"github.com/clarenous/go-capsule/consensus/algorithm/pow"
 	"math/big"
 	"sort"
 	"sync"
@@ -23,13 +25,12 @@ type BlockNode struct {
 	Hash    types.Hash // hash of the block.
 	WorkSum *big.Int   // total amount of work in the chain up to
 
-	Version               uint64
-	Height                uint64
-	Timestamp             uint64
-	Nonce                 uint64
-	Target                uint64
-	TransactionRoot       types.Hash
-	TransactionStatusHash types.Hash
+	Version         uint64
+	Height          uint64
+	Timestamp       uint64
+	Proof           ca.Proof
+	TransactionRoot types.Hash
+	WitnessRoot     types.Hash
 }
 
 func NewBlockNode(bh *types.BlockHeader, parent *BlockNode) (*BlockNode, error) {
@@ -38,16 +39,15 @@ func NewBlockNode(bh *types.BlockHeader, parent *BlockNode) (*BlockNode, error) 
 	}
 
 	node := &BlockNode{
-		Parent:                parent,
-		Hash:                  bh.Hash(),
-		WorkSum:               difficulty.CalcWork(bh.Proof.Target),
-		Version:               bh.Version,
-		Height:                bh.Height,
-		Timestamp:             bh.Timestamp,
-		Nonce:                 bh.Proof.Nonce,
-		Target:                bh.Proof.Target,
-		TransactionRoot:       bh.TransactionRoot,
-		TransactionStatusHash: bh.TransactionStatusHash,
+		Parent:          parent,
+		Hash:            bh.Hash(),
+		WorkSum:         difficulty.CalcWork(bh.Proof.(*pow.WorkProof).Target),
+		Version:         bh.Version,
+		Height:          bh.Height,
+		Timestamp:       bh.Timestamp,
+		Proof:           bh.Proof,
+		TransactionRoot: bh.TransactionRoot,
+		WitnessRoot:     bh.TransactionStatusHash,
 	}
 
 	if bh.Height != 0 {
@@ -68,10 +68,7 @@ func (node *BlockNode) BlockHeader() *types.BlockHeader {
 		Timestamp:       node.Timestamp,
 		Previous:        previousBlockHash,
 		TransactionRoot: node.TransactionRoot,
-		Proof: types.BlockProof{
-			Nonce:  node.Nonce,
-			Target: node.Target,
-		},
+		Proof:           node.Proof,
 	}
 }
 

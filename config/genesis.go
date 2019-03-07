@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/clarenous/go-capsule/consensus/algorithm/pow"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/clarenous/go-capsule/consensus"
@@ -23,14 +24,6 @@ func genesisTx() *types.Tx {
 
 func mainNetGenesisBlock() *types.Block {
 	tx := genesisTx()
-	txStatus := types.NewTransactionStatus()
-	if err := txStatus.SetStatus(0, false); err != nil {
-		log.Panicf(err.Error())
-	}
-	txStatusHash, err := types.TxStatusMerkleRoot(txStatus.VerifyStatus)
-	if err != nil {
-		log.Panicf("fail on calc genesis tx status merkle root")
-	}
 
 	merkleRoot, err := types.TxMerkleRoot([]*types.Tx{tx.Tx})
 	if err != nil {
@@ -39,14 +32,14 @@ func mainNetGenesisBlock() *types.Block {
 
 	block := &types.Block{
 		BlockHeader: types.BlockHeader{
-			Version:   1,
-			Height:    0,
-			Nonce:     9253507043297,
-			Timestamp: 1524549600,
-			Bits:      2161727821137910632,
-			BlockCommitment: types.BlockCommitment{
-				TransactionsMerkleRoot: merkleRoot,
-				TransactionStatusHash:  txStatusHash,
+			Version:         1,
+			Height:          0,
+			Timestamp:       1524549600,
+			TransactionRoot: merkleRoot,
+			WitnessRoot:     txStatusHash,
+			Proof: &pow.WorkProof{
+				Target: 2161727821137910632,
+				Nonce:  9253507043297,
 			},
 		},
 		Transactions: []*types.Tx{tx},
@@ -56,14 +49,6 @@ func mainNetGenesisBlock() *types.Block {
 
 func testNetGenesisBlock() *types.Block {
 	tx := genesisTx()
-	txStatus := types.NewTransactionStatus()
-	if err := txStatus.SetStatus(0, false); err != nil {
-		log.Panicf(err.Error())
-	}
-	txStatusHash, err := types.TxStatusMerkleRoot(txStatus.VerifyStatus)
-	if err != nil {
-		log.Panicf("fail on calc genesis tx status merkle root")
-	}
 
 	merkleRoot, err := types.TxMerkleRoot([]*types.Tx{tx.Tx})
 	if err != nil {
@@ -72,14 +57,14 @@ func testNetGenesisBlock() *types.Block {
 
 	block := &types.Block{
 		BlockHeader: types.BlockHeader{
-			Version:   1,
-			Height:    0,
-			Nonce:     9253507043297,
-			Timestamp: 1528945000,
-			Bits:      2305843009214532812,
-			BlockCommitment: types.BlockCommitment{
-				TransactionsMerkleRoot: merkleRoot,
-				TransactionStatusHash:  txStatusHash,
+			Version:         1,
+			Height:          0,
+			Timestamp:       1528945000,
+			TransactionRoot: merkleRoot,
+			WitnessRoot:     txStatusHash,
+			Proof: &pow.WorkProof{
+				Target: 2305843009214532812,
+				Nonce:  9253507043297,
 			},
 		},
 		Transactions: []*types.Tx{tx},
@@ -89,14 +74,6 @@ func testNetGenesisBlock() *types.Block {
 
 func soloNetGenesisBlock() *types.Block {
 	tx := genesisTx()
-	txStatus := types.NewTransactionStatus()
-	if err := txStatus.SetStatus(0, false); err != nil {
-		log.Panicf(err.Error())
-	}
-	txStatusHash, err := types.TxStatusMerkleRoot(txStatus.VerifyStatus)
-	if err != nil {
-		log.Panicf("fail on calc genesis tx status merkle root")
-	}
 
 	merkleRoot, err := types.TxMerkleRoot([]*types.Tx{tx.Tx})
 	if err != nil {
@@ -105,14 +82,14 @@ func soloNetGenesisBlock() *types.Block {
 
 	block := &types.Block{
 		BlockHeader: types.BlockHeader{
-			Version:   1,
-			Height:    0,
-			Nonce:     9253507043297,
-			Timestamp: 1528945000,
-			Bits:      2305843009214532812,
-			BlockCommitment: types.BlockCommitment{
-				TransactionsMerkleRoot: merkleRoot,
-				TransactionStatusHash:  txStatusHash,
+			Version:         1,
+			Height:          0,
+			Timestamp:       1528945000,
+			TransactionRoot: merkleRoot,
+			WitnessRoot:     txStatusHash,
+			Proof: &pow.WorkProof{
+				Target: 2305843009214532812,
+				Nonce:  9253507043297,
 			},
 		},
 		Transactions: []*types.Tx{tx},

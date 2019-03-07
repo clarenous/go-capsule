@@ -13,11 +13,6 @@ import (
 // ErrBadTx is returned for transactions failing validation
 var ErrBadTx = errors.New("invalid transaction")
 
-// GetTransactionStatus return the transaction status of give block
-func (c *Chain) GetTransactionStatus(hash *types.Hash) (*types.TransactionStatus, error) {
-	return c.store.GetTransactionStatus(hash)
-}
-
 // GetTransactionsUtxo return all the utxos that related to the txs' inputs
 func (c *Chain) GetTransactionsUtxo(view *state.UtxoViewpoint, txs []*types.Tx) error {
 	return c.store.GetTransactionsUtxo(view, txs)

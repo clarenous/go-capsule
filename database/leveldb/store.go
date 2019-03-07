@@ -14,8 +14,8 @@ import (
 	"github.com/clarenous/go-capsule/errors"
 	"github.com/clarenous/go-capsule/protocol"
 
-	"github.com/clarenous/go-capsule/protocol/types"
 	"github.com/clarenous/go-capsule/protocol/state"
+	"github.com/clarenous/go-capsule/protocol/types"
 )
 
 const logModule = "leveldb"
@@ -56,10 +56,6 @@ func calcBlockHeaderKey(height uint64, hash *types.Hash) []byte {
 	binary.BigEndian.PutUint64(buf[:], height)
 	key := append(blockHeaderPrefix, buf[:]...)
 	return append(key, hash.Bytes()...)
-}
-
-func calcTxStatusKey(hash *types.Hash) []byte {
-	return append(txStatusPrefix, hash.Bytes()...)
 }
 
 // GetBlock return the block by given hash
@@ -104,20 +100,6 @@ func (s *Store) GetBlock(hash *types.Hash) (*types.Block, error) {
 // GetTransactionsUtxo will return all the utxo that related to the input txs
 func (s *Store) GetTransactionsUtxo(view *state.UtxoViewpoint, txs []*types.Tx) error {
 	return getTransactionsUtxo(s.db, view, txs)
-}
-
-// GetTransactionStatus will return the utxo that related to the block hash
-func (s *Store) GetTransactionStatus(hash *types.Hash) (*types.TransactionStatus, error) {
-	data := s.db.Get(calcTxStatusKey(hash))
-	if data == nil {
-		return nil, errors.New("can't find the transaction status by given hash")
-	}
-
-	ts := &types.TransactionStatus{}
-	if err := proto.Unmarshal(data, ts); err != nil {
-		return nil, errors.Wrap(err, "unmarshaling transaction status")
-	}
-	return ts, nil
 }
 
 // GetStoreStatus return the BlockStoreStateJSON
@@ -169,7 +151,7 @@ func (s *Store) LoadBlockIndex(stateBestHeight uint64) (*state.BlockIndex, error
 }
 
 // SaveBlock persists a new block in the protocol.
-func (s *Store) SaveBlock(block *types.Block, ts *types.TransactionStatus) error {
+func (s *Store) SaveBlock(block *types.Block) error {
 	startTime := time.Now()
 	binaryBlock, err := block.MarshalText()
 	if err != nil {
@@ -181,16 +163,10 @@ func (s *Store) SaveBlock(block *types.Block, ts *types.TransactionStatus) error
 		return errors.Wrap(err, "Marshal block header")
 	}
 
-	binaryTxStatus, err := proto.Marshal(ts)
-	if err != nil {
-		return errors.Wrap(err, "marshal block transaction status")
-	}
-
 	blockHash := block.Hash()
 	batch := s.db.NewBatch()
 	batch.Set(calcBlockKey(&blockHash), binaryBlock)
 	batch.Set(calcBlockHeaderKey(block.Height, &blockHash), binaryBlockHeader)
-	batch.Set(calcTxStatusKey(&blockHash), binaryTxStatus)
 	batch.Write()
 
 	log.WithFields(log.Fields{

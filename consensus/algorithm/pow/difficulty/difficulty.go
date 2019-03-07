@@ -116,7 +116,7 @@ func BigToCompact(n *big.Int) uint64 {
 }
 
 // CheckProofOfWork checks whether the hash is valid for a given difficulty.
-func CheckProofOfWork(hash, seed *types.Hash, bits uint64) bool {
+func CheckProofOfWork(hash *types.Hash, bits uint64) bool {
 	//compareHash := pow.AIHash.Hash(hash, seed)
 	//return HashToBig(compareHash).Cmp(CompactToBig(bits)) <= 0
 	return true

@@ -60,6 +60,16 @@ func checkCoinbaseAmount(b *types.Block, amount uint64) error {
 	return nil
 }
 
+func ValidateProof(b *types.Block, parent *state.BlockNode) error {
+	if b.Proof.Target != parent.CalcNextBits() {
+		return errBadBits
+	}
+	if !difficulty.CheckProofOfWork(b.Hash().Ptr(), b.Proof.Nonce) {
+		return errWorkProof
+	}
+	return nil
+}
+
 // ValidateBlockHeader check the block's header
 func ValidateBlockHeader(b *types.Block, parent *state.BlockNode) error {
 	if b.Version < BlockVersion {
@@ -68,17 +78,14 @@ func ValidateBlockHeader(b *types.Block, parent *state.BlockNode) error {
 	if b.Height != parent.Height+1 {
 		return errors.WithDetailf(errMisorderedBlockHeight, "previous block height %d, current block height %d", parent.Height, b.Height)
 	}
-	if b.Proof.Target != parent.CalcNextBits() {
-		return errBadBits
-	}
 	if parent.Hash != b.Previous {
 		return errors.WithDetailf(errMismatchedBlock, "previous block ID %x, current block wants %x", parent.Hash.Bytes(), b.Previous.Bytes())
 	}
 	if err := checkBlockTime(b, parent); err != nil {
 		return err
 	}
-	if !difficulty.CheckProofOfWork(&b.Hash(), b.Proof.Nonce) {
-		return errWorkProof
+	if err := ValidateProof(b, parent); err != nil {
+		return err
 	}
 	return nil
 }
@@ -92,7 +99,6 @@ func ValidateBlock(b *types.Block, parent *state.BlockNode) error {
 
 	blockGasSum := uint64(0)
 	coinbaseAmount := consensus.BlockSubsidy(b.BlockHeader.Height)
-	b.TransactionStatus = types.NewTransactionStatus()
 
 	for i, tx := range b.Transactions {
 		gasStatus, err := ValidateTx(tx, b)
@@ -100,9 +106,6 @@ func ValidateBlock(b *types.Block, parent *state.BlockNode) error {
 			return errors.Wrapf(err, "validate of transaction %d of %d", i, len(b.Transactions))
 		}
 
-		if err := b.TransactionStatus.SetStatus(i, err != nil); err != nil {
-			return err
-		}
 		coinbaseAmount += gasStatus.BTMValue
 		if blockGasSum += uint64(gasStatus.GasUsed); blockGasSum > consensus.MaxBlockGas {
 			return errOverBlockLimit
@@ -119,14 +122,6 @@ func ValidateBlock(b *types.Block, parent *state.BlockNode) error {
 	}
 	if txMerkleRoot != *b.TransactionsRoot {
 		return errors.WithDetailf(errMismatchedMerkleRoot, "transaction id merkle root")
-	}
-
-	txStatusHash, err := types.TxStatusMerkleRoot(b.TransactionStatus.VerifyStatus)
-	if err != nil {
-		return errors.Wrap(err, "computing transaction status merkle root")
-	}
-	if txStatusHash != *b.TransactionStatusHash {
-		return errors.WithDetailf(errMismatchedMerkleRoot, "transaction status merkle root")
 	}
 
 	log.WithFields(log.Fields{

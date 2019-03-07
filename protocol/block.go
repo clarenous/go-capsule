@@ -1,7 +1,6 @@
 package protocol
 
 import (
-
 	log "github.com/sirupsen/logrus"
 
 	"github.com/clarenous/go-capsule/errors"
@@ -75,10 +74,6 @@ func (c *Chain) calcReorganizeNodes(node *state.BlockNode) ([]*state.BlockNode, 
 }
 
 func (c *Chain) connectBlock(block *types.Block) (err error) {
-	if block.TransactionStatus, err = c.store.GetTransactionStatus(block.Hash().Ptr()); err != nil {
-		return err
-	}
-
 	utxoView := state.NewUtxoViewpoint()
 	if err := c.store.GetTransactionsUtxo(utxoView, block.Transactions); err != nil {
 		return err
@@ -112,10 +107,6 @@ func (c *Chain) reorganizeChain(node *state.BlockNode) error {
 		if err := c.store.GetTransactionsUtxo(utxoView, detachBlock.Transactions); err != nil {
 			return err
 		}
-		txStatus, err := c.GetTransactionStatus(detachBlock.Hash().Ptr())
-		if err != nil {
-			return err
-		}
 		if err := utxoView.DetachBlock(detachBlock, txStatus); err != nil {
 			return err
 		}
@@ -131,10 +122,6 @@ func (c *Chain) reorganizeChain(node *state.BlockNode) error {
 
 		attachBlock := b
 		if err := c.store.GetTransactionsUtxo(utxoView, attachBlock.Transactions); err != nil {
-			return err
-		}
-		txStatus, err := c.GetTransactionStatus(attachBlock.Hash().Ptr())
-		if err != nil {
 			return err
 		}
 		if err := utxoView.ApplyBlock(attachBlock, txStatus); err != nil {
