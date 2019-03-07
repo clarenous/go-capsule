@@ -193,8 +193,7 @@ func (db *GoLevelDB) Iterator(start, end []byte) Iterator {
 
 // Implements DB.
 func (db *GoLevelDB) ReverseIterator(start, end []byte) Iterator {
-	itr := db.db.NewIterator(nil, nil)
-	return newGoLevelDBIterator(itr, start, end, true)
+	panic("not implemented yet") // XXX
 }
 
 type goLevelDBIterator struct {
@@ -209,26 +208,9 @@ var _ Iterator = (*goLevelDBIterator)(nil)
 
 func newGoLevelDBIterator(source iterator.Iterator, start, end []byte, isReverse bool) *goLevelDBIterator {
 	if isReverse {
-		if start == nil {
-			source.Last()
-		} else {
-			valid := source.Seek(start)
-			if valid {
-				soakey := source.Key() // start or after key
-				if bytes.Compare(start, soakey) < 0 {
-					source.Prev()
-				}
-			} else {
-				source.Last()
-			}
-		}
-	} else {
-		if start == nil {
-			source.First()
-		} else {
-			source.Seek(start)
-		}
+		panic("not implemented yet") // XXX
 	}
+	source.Seek(start)
 	return &goLevelDBIterator{
 		source:    source,
 		start:     start,
@@ -263,17 +245,9 @@ func (itr *goLevelDBIterator) Valid() bool {
 	// If key is end or past it, invalid.
 	var end = itr.end
 	var key = itr.source.Key()
-
-	if itr.isReverse {
-		if end != nil && bytes.Compare(key, end) <= 0 {
-			itr.isInvalid = true
-			return false
-		}
-	} else {
-		if end != nil && bytes.Compare(end, key) <= 0 {
-			itr.isInvalid = true
-			return false
-		}
+	if end != nil && bytes.Compare(end, key) <= 0 {
+		itr.isInvalid = true
+		return false
 	}
 
 	// Valid
@@ -302,11 +276,7 @@ func (itr *goLevelDBIterator) Value() []byte {
 func (itr *goLevelDBIterator) Next() {
 	itr.assertNoError()
 	itr.assertIsValid()
-	if itr.isReverse {
-		itr.source.Prev()
-	} else {
-		itr.source.Next()
-	}
+	itr.source.Next()
 }
 
 // Implements Iterator.

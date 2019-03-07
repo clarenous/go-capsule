@@ -2,6 +2,30 @@
 
 
 [[projects]]
+  branch = "master"
+  digest = "1:7736fc6da04620727f8f3aa2ced8d77be8e074a302820937aa5993848c769b27"
+  name = "github.com/brejski/hid"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "48b08affede2cea076a3cf13b2e3f72ed262b743"
+
+[[projects]]
+  branch = "master"
+  digest = "1:093bf93a65962e8191e3e8cd8fc6c363f83d43caca9739c906531ba7210a9904"
+  name = "github.com/btcsuite/btcd"
+  packages = ["btcec"]
+  pruneopts = "UT"
+  revision = "306aecffea325e97f513b3ff0cf7895a5310651d"
+
+[[projects]]
+  branch = "master"
+  digest = "1:1e6b2f7aa98b082c30a1303c29a702c369b2ec6d86b74a599bc8bbe2333db299"
+  name = "github.com/btcsuite/go-socks"
+  packages = ["socks"]
+  pruneopts = "UT"
+  revision = "4720035b7bfd2a9bb130b1c184f8bbe41b6f0d0f"
+
+[[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
@@ -46,6 +70,18 @@
   version = "v1.8.0"
 
 [[projects]]
+  digest = "1:4652941215f23c7ad6546bab86964c72248a1134baa53f0df618661344ba5cac"
+  name = "github.com/gogo/protobuf"
+  packages = [
+    "gogoproto",
+    "proto",
+    "protoc-gen-gogo/descriptor",
+  ]
+  pruneopts = "UT"
+  revision = "ba06b47c162d49f2af050fb4c75bcbc86a159d5c"
+  version = "v1.2.1"
+
+[[projects]]
   branch = "master"
   digest = "1:91cc5c47e7bb1ff16783942250971e55bff67da11554cf33bb7589517bc91a82"
   name = "github.com/golang/groupcache"
@@ -57,9 +93,12 @@
   revision = "5b532d6fd5efaf7fa130d4e859a2fde0fc3a9e1b"
 
 [[projects]]
-  digest = "1:318f1c959a8a740366fce4b1e1eb2fd914036b4af58fbd0a003349b305f118ad"
+  digest = "1:00128d98b4ccf1e335a8ee2c2b7676a9c7439e5a93dae0a701bb849b0cc536f4"
   name = "github.com/golang/protobuf"
-  packages = ["proto"]
+  packages = [
+    "proto",
+    "ptypes/any",
+  ]
   pruneopts = "UT"
   revision = "c823c79ea1570fb5ff454033735a8e68575d1d0f"
   version = "v1.3.0"
@@ -263,24 +302,79 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:f66f7a4940150cc63a6cf4c24adb9752ee9f713f9f43a279a04feb939531f216"
+  branch = "master"
+  digest = "1:087aaa7920e5d0bf79586feb57ce01c35c830396ab4392798112e8aae8c47722"
+  name = "github.com/tendermint/ed25519"
+  packages = [
+    ".",
+    "edwards25519",
+    "extra25519",
+  ]
+  pruneopts = "UT"
+  revision = "d8387025d2b9d158cf4efb07e7ebf814bcce2057"
+
+[[projects]]
+  digest = "1:e9113641c839c21d8eaeb2c907c7276af1eddeed988df8322168c56b7e06e0e1"
+  name = "github.com/tendermint/go-amino"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "2106ca61d91029c931fd54968c2bb02dc96b1412"
+  version = "0.10.1"
+
+[[projects]]
+  digest = "1:82f70bfe58f1a55601d469b928aec5b10b1d85710e6adde40dfea8d9adba939d"
+  name = "github.com/tendermint/go-crypto"
+  packages = [
+    ".",
+    "tmhash",
+  ]
+  pruneopts = "UT"
+  revision = "6a6b591a3d7592a04b46af95451cb5be3b114f76"
+  version = "v0.9.0"
+
+[[projects]]
+  digest = "1:ad9c4c1a4e7875330b1f62906f2830f043a23edb5db997e3a5ac5d3e6eadf80a"
+  name = "github.com/tendermint/go-wire"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "dc14acf9ef15f85828bfbc561ed9dd9d2a284885"
+  version = "v0.14.1"
+
+[[projects]]
+  digest = "1:16503a0105f9691b6d311537898ad99de7382016fa18a5fb4851614b93c00fce"
   name = "github.com/tendermint/tmlibs"
   packages = [
     "common",
     "db",
+    "flowrate",
     "log",
   ]
   pruneopts = "UT"
-  revision = "49596e0a1f48866603813df843c9409fc19805c6"
-  version = "v0.9.0"
+  revision = "692f1d86a6e2c0efa698fd1e4541b68c74ffaf38"
+  version = "v0.8.4"
+
+[[projects]]
+  digest = "1:a3f9fb27d64edc852a8669967c806b1ad3d6c80b0b70ace8fe7e12cff6d3324a"
+  name = "github.com/zondax/ledger-goclient"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "3e2146609cdb97894c064d59e9d00accd8c2b1dd"
 
 [[projects]]
   branch = "master"
-  digest = "1:c0b9ec562d6b29843d2f85ff461e2615c21b42f429b698329e2b3c5c8fe69c6c"
+  digest = "1:0e506d37f0ec9b81c5e7565d8c22f844da4dbd7f4ad67d7c660937ccc7df1da8"
   name = "golang.org/x/crypto"
   packages = [
+    "curve25519",
+    "internal/subtle",
+    "nacl/box",
+    "nacl/secretbox",
+    "openpgp/armor",
+    "openpgp/errors",
     "pbkdf2",
+    "poly1305",
     "ripemd160",
+    "salsa20/salsa",
     "scrypt",
     "sha3",
     "ssh/terminal",
@@ -316,6 +410,14 @@
   version = "v0.3.0"
 
 [[projects]]
+  branch = "v2"
+  digest = "1:0a2f4b974a413866afa1b41130d756643841fb9ad661b81c9a6dd9f1364ed19f"
+  name = "gopkg.in/karalabe/cookiejar.v2"
+  packages = ["collections/prque"]
+  pruneopts = "UT"
+  revision = "8dcd6a7f4951f6ff3ee9cbb919a06d8925822e57"
+
+[[projects]]
   digest = "1:4d2e5a73dc1500038e504a8d78b986630e3626dc027bc030ba5c75da257cdb96"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
@@ -327,22 +429,37 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/btcsuite/go-socks/socks",
     "github.com/davecgh/go-spew/spew",
     "github.com/golang/groupcache/lru",
     "github.com/golang/groupcache/singleflight",
     "github.com/golang/protobuf/proto",
+    "github.com/golang/protobuf/ptypes/any",
     "github.com/mitchellh/go-homedir",
+    "github.com/pkg/errors",
     "github.com/sirupsen/logrus",
     "github.com/spf13/cobra",
     "github.com/spf13/viper",
     "github.com/stretchr/testify/assert",
     "github.com/stretchr/testify/require",
+    "github.com/syndtr/goleveldb/leveldb",
+    "github.com/syndtr/goleveldb/leveldb/errors",
+    "github.com/syndtr/goleveldb/leveldb/iterator",
+    "github.com/syndtr/goleveldb/leveldb/opt",
+    "github.com/syndtr/goleveldb/leveldb/storage",
+    "github.com/syndtr/goleveldb/leveldb/util",
+    "github.com/tendermint/go-crypto",
+    "github.com/tendermint/go-wire",
     "github.com/tendermint/tmlibs/common",
     "github.com/tendermint/tmlibs/db",
+    "github.com/tendermint/tmlibs/flowrate",
+    "golang.org/x/crypto/nacl/box",
+    "golang.org/x/crypto/nacl/secretbox",
     "golang.org/x/crypto/pbkdf2",
     "golang.org/x/crypto/ripemd160",
     "golang.org/x/crypto/scrypt",
     "golang.org/x/crypto/sha3",
+    "gopkg.in/karalabe/cookiejar.v2/collections/prque",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

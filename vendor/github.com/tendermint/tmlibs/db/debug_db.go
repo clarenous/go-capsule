@@ -33,9 +33,7 @@ func (ddb debugDB) Mutex() *sync.Mutex { return nil }
 // Implements DB.
 func (ddb debugDB) Get(key []byte) (value []byte) {
 	defer func() {
-		fmt.Printf("%v.Get(%v) %v\n", ddb.label,
-			cmn.ColoredBytes(key, cmn.Cyan, cmn.Blue),
-			cmn.ColoredBytes(value, cmn.Green, cmn.Blue))
+		fmt.Printf("%v.Get(%v) %v\n", ddb.label, cmn.Cyan(_fmt("%X", key)), cmn.Blue(_fmt("%X", value)))
 	}()
 	value = ddb.db.Get(key)
 	return
@@ -44,85 +42,68 @@ func (ddb debugDB) Get(key []byte) (value []byte) {
 // Implements DB.
 func (ddb debugDB) Has(key []byte) (has bool) {
 	defer func() {
-		fmt.Printf("%v.Has(%v) %v\n", ddb.label,
-			cmn.ColoredBytes(key, cmn.Cyan, cmn.Blue), has)
+		fmt.Printf("%v.Has(%v) %v\n", ddb.label, cmn.Cyan(_fmt("%X", key)), has)
 	}()
 	return ddb.db.Has(key)
 }
 
 // Implements DB.
 func (ddb debugDB) Set(key []byte, value []byte) {
-	fmt.Printf("%v.Set(%v, %v)\n", ddb.label,
-		cmn.ColoredBytes(key, cmn.Yellow, cmn.Blue),
-		cmn.ColoredBytes(value, cmn.Green, cmn.Blue))
+	fmt.Printf("%v.Set(%v, %v)\n", ddb.label, cmn.Cyan(_fmt("%X", key)), cmn.Yellow(_fmt("%X", value)))
 	ddb.db.Set(key, value)
 }
 
 // Implements DB.
 func (ddb debugDB) SetSync(key []byte, value []byte) {
-	fmt.Printf("%v.SetSync(%v, %v)\n", ddb.label,
-		cmn.ColoredBytes(key, cmn.Yellow, cmn.Blue),
-		cmn.ColoredBytes(value, cmn.Green, cmn.Blue))
+	fmt.Printf("%v.SetSync(%v, %v)\n", ddb.label, cmn.Cyan(_fmt("%X", key)), cmn.Yellow(_fmt("%X", value)))
 	ddb.db.SetSync(key, value)
 }
 
 // Implements atomicSetDeleter.
 func (ddb debugDB) SetNoLock(key []byte, value []byte) {
-	fmt.Printf("%v.SetNoLock(%v, %v)\n", ddb.label,
-		cmn.ColoredBytes(key, cmn.Yellow, cmn.Blue),
-		cmn.ColoredBytes(value, cmn.Green, cmn.Blue))
+	fmt.Printf("%v.SetNoLock(%v, %v)\n", ddb.label, cmn.Cyan(_fmt("%X", key)), cmn.Yellow(_fmt("%X", value)))
 	ddb.db.(atomicSetDeleter).SetNoLock(key, value)
 }
 
 // Implements atomicSetDeleter.
 func (ddb debugDB) SetNoLockSync(key []byte, value []byte) {
-	fmt.Printf("%v.SetNoLockSync(%v, %v)\n", ddb.label,
-		cmn.ColoredBytes(key, cmn.Yellow, cmn.Blue),
-		cmn.ColoredBytes(value, cmn.Green, cmn.Blue))
+	fmt.Printf("%v.SetNoLockSync(%v, %v)\n", ddb.label, cmn.Cyan(_fmt("%X", key)), cmn.Yellow(_fmt("%X", value)))
 	ddb.db.(atomicSetDeleter).SetNoLockSync(key, value)
 }
 
 // Implements DB.
 func (ddb debugDB) Delete(key []byte) {
-	fmt.Printf("%v.Delete(%v)\n", ddb.label,
-		cmn.ColoredBytes(key, cmn.Red, cmn.Yellow))
+	fmt.Printf("%v.Delete(%v)\n", ddb.label, cmn.Red(_fmt("%X", key)))
 	ddb.db.Delete(key)
 }
 
 // Implements DB.
 func (ddb debugDB) DeleteSync(key []byte) {
-	fmt.Printf("%v.DeleteSync(%v)\n", ddb.label,
-		cmn.ColoredBytes(key, cmn.Red, cmn.Yellow))
+	fmt.Printf("%v.DeleteSync(%v)\n", ddb.label, cmn.Red(_fmt("%X", key)))
 	ddb.db.DeleteSync(key)
 }
 
 // Implements atomicSetDeleter.
 func (ddb debugDB) DeleteNoLock(key []byte) {
-	fmt.Printf("%v.DeleteNoLock(%v)\n", ddb.label,
-		cmn.ColoredBytes(key, cmn.Red, cmn.Yellow))
+	fmt.Printf("%v.DeleteNoLock(%v)\n", ddb.label, cmn.Red(_fmt("%X", key)))
 	ddb.db.(atomicSetDeleter).DeleteNoLock(key)
 }
 
 // Implements atomicSetDeleter.
 func (ddb debugDB) DeleteNoLockSync(key []byte) {
-	fmt.Printf("%v.DeleteNoLockSync(%v)\n", ddb.label,
-		cmn.ColoredBytes(key, cmn.Red, cmn.Yellow))
+	fmt.Printf("%v.DeleteNoLockSync(%v)\n", ddb.label, cmn.Red(_fmt("%X", key)))
 	ddb.db.(atomicSetDeleter).DeleteNoLockSync(key)
 }
 
 // Implements DB.
 func (ddb debugDB) Iterator(start, end []byte) Iterator {
-	fmt.Printf("%v.Iterator(%v, %v)\n", ddb.label,
-		cmn.ColoredBytes(start, cmn.Cyan, cmn.Blue),
-		cmn.ColoredBytes(end, cmn.Cyan, cmn.Blue))
+	fmt.Printf("%v.Iterator(%v, %v)\n", ddb.label, cmn.Cyan(_fmt("%X", start)), cmn.Blue(_fmt("%X", end)))
 	return NewDebugIterator(ddb.label, ddb.db.Iterator(start, end))
 }
 
 // Implements DB.
 func (ddb debugDB) ReverseIterator(start, end []byte) Iterator {
-	fmt.Printf("%v.ReverseIterator(%v, %v)\n", ddb.label,
-		cmn.ColoredBytes(start, cmn.Cyan, cmn.Blue),
-		cmn.ColoredBytes(end, cmn.Cyan, cmn.Blue))
+	fmt.Printf("%v.ReverseIterator(%v, %v)\n", ddb.label, cmn.Cyan(_fmt("%X", start)), cmn.Blue(_fmt("%X", end)))
 	return NewDebugIterator(ddb.label, ddb.db.ReverseIterator(start, end))
 }
 
@@ -192,17 +173,15 @@ func (ditr debugIterator) Next() {
 
 // Implements Iterator.
 func (ditr debugIterator) Key() (key []byte) {
+	fmt.Printf("%v.itr.Key() %v\n", ditr.label, cmn.Cyan(_fmt("%X", key)))
 	key = ditr.itr.Key()
-	fmt.Printf("%v.itr.Key() %v\n", ditr.label,
-		cmn.ColoredBytes(key, cmn.Cyan, cmn.Blue))
 	return
 }
 
 // Implements Iterator.
 func (ditr debugIterator) Value() (value []byte) {
+	fmt.Printf("%v.itr.Value() %v\n", ditr.label, cmn.Blue(_fmt("%X", value)))
 	value = ditr.itr.Value()
-	fmt.Printf("%v.itr.Value() %v\n", ditr.label,
-		cmn.ColoredBytes(value, cmn.Green, cmn.Blue))
 	return
 }
 
@@ -230,16 +209,13 @@ func NewDebugBatch(label string, bch Batch) debugBatch {
 
 // Implements Batch.
 func (dbch debugBatch) Set(key, value []byte) {
-	fmt.Printf("%v.batch.Set(%v, %v)\n", dbch.label,
-		cmn.ColoredBytes(key, cmn.Yellow, cmn.Blue),
-		cmn.ColoredBytes(value, cmn.Green, cmn.Blue))
+	fmt.Printf("%v.batch.Set(%v, %v)\n", dbch.label, cmn.Cyan(_fmt("%X", key)), cmn.Yellow(_fmt("%X", value)))
 	dbch.bch.Set(key, value)
 }
 
 // Implements Batch.
 func (dbch debugBatch) Delete(key []byte) {
-	fmt.Printf("%v.batch.Delete(%v)\n", dbch.label,
-		cmn.ColoredBytes(key, cmn.Red, cmn.Yellow))
+	fmt.Printf("%v.batch.Delete(%v)\n", dbch.label, cmn.Red(_fmt("%X", key)))
 	dbch.bch.Delete(key)
 }
 
