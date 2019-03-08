@@ -3,6 +3,7 @@ BUILD_FLAGS := -ldflags "-X github.com/clarenous/go-capsule/version.GitCommit=`g
 build:
 	@echo "Building capsuled to bin/capsuled"
 	@go build $(BUILD_FLAGS) -o bin/capsuled cmd/capsuled/main.go
+
 lint:
 	@echo "make lint: begin"
 	@echo "checking code with linter..."

@@ -15,3 +15,7 @@ func (wp *WorkProof) ToProto() (*proto.Message, error) {
 func (wp *WorkProof) HintNextProof(args []interface{}) error {
 	return nil
 }
+
+func (wp *WorkProof) ValidateProof(args []interface{}) error {
+	return nil
+}

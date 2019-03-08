@@ -45,22 +45,12 @@ func checkCoinbaseAmount(b *types.Block, amount uint64) error {
 	}
 
 	tx := b.Transactions[0]
-	if len(tx.TxHeader.ResultIds) != 1 {
-		return errors.Wrap(ErrWrongCoinbaseTransaction, "have more than 1 output")
-	}
-
-	output, err := tx.Output(*tx.TxHeader.ResultIds[0])
-	if err != nil {
-		return err
-	}
-
-	if output.Source.Value.Amount != amount {
-		return errors.Wrap(ErrWrongCoinbaseTransaction, "dismatch output amount")
-	}
 	return nil
 }
 
 func ValidateProof(b *types.Block, parent *state.BlockNode) error {
+	return b.Proof.ValidateProof(nil)
+
 	if b.Proof.Target != parent.CalcNextBits() {
 		return errBadBits
 	}

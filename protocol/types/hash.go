@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/clarenous/go-capsule/protocol/types/pb"
+	"golang.org/x/crypto/sha3"
 	"io"
 )
 
@@ -17,6 +18,9 @@ const (
 )
 
 type Hash typespb.Hash
+
+// EmptyStringHash represents a 256-bit hash.
+var EmptyStringHash = NewHash(sha3.Sum256(nil))
 
 // NewHash convert the input byte array to hash
 func NewHash(b32 [32]byte) (h Hash) {

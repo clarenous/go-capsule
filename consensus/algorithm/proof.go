@@ -6,4 +6,5 @@ type Proof interface {
 	FromProto(*proto.Message) error
 	ToProto() (*proto.Message, error)
 	HintNextProof(args []interface{}) error
+	ValidateProof(args []interface{}) error
 }
