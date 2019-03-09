@@ -167,7 +167,7 @@ func mockTxs(txCount int) ([]*types.Tx, []*types.Tx) {
 	var bcTxs []*types.Tx
 	for i := 0; i < txCount; i++ {
 		trueProg := mockControlProgram(60)
-		assetID := types.ComputeAssetID(trueProg, 1, &types.EmptyStringHash)
+		assetID := types.ComputeAssetID(trueProg, 1, &types.EmptyHash)
 		now := []byte(time.Now().String())
 		issuanceInp := types.NewIssuanceInput(now, 1, trueProg, nil, nil)
 		tx := types.NewTx(types.TxData{

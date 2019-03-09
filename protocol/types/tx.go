@@ -26,7 +26,7 @@ type OutPoint struct {
 // TxOut
 type TxOut struct {
 	Value      uint64
-	LockScript []byte
+	ScriptHash Hash160
 }
 
 func (tx *Tx) bytesForID() []byte {

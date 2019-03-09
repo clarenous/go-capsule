@@ -35,7 +35,7 @@ type merkleNode interface {
 func merkleRoot(nodes []merkleNode) (root Hash, err error) {
 	switch {
 	case len(nodes) == 0:
-		return EmptyStringHash, nil
+		return EmptyHash, nil
 
 	case len(nodes) == 1:
 		root = leafMerkleHash(nodes[0])
@@ -212,7 +212,7 @@ func GetTxMerkleTreeProof(txs []*Tx, relatedTxs []*Tx) ([]*Hash, []uint8) {
 // getMerkleRootByProof caculate the merkle root hash according to the proof
 func getMerkleRootByProof(hashList *list.List, flagList *list.List, merkleHashes *list.List) Hash {
 	if flagList.Len() == 0 || hashList.Len() == 0 {
-		return EmptyStringHash
+		return EmptyHash
 	}
 	flagEle := flagList.Front()
 	flag := flagEle.Value.(uint8)
@@ -227,7 +227,7 @@ func getMerkleRootByProof(hashList *list.List, flagList *list.List, merkleHashes
 	case FlagTxLeaf:
 		{
 			if merkleHashes.Len() == 0 {
-				return EmptyStringHash
+				return EmptyHash
 			}
 			hashEle := hashList.Front()
 			hash := hashEle.Value.(Hash)
@@ -247,7 +247,7 @@ func getMerkleRootByProof(hashList *list.List, flagList *list.List, merkleHashes
 			return hash
 		}
 	}
-	return EmptyStringHash
+	return EmptyHash
 }
 
 func newMerkleTreeNode(merkleHash Hash, left *merkleTreeNode, right *merkleTreeNode) *merkleTreeNode {

@@ -12,6 +12,14 @@ message Hash {
     fixed64 s3 = 4;
 }
 
+message Hash160 {
+    fixed32 s0 = 1;
+    fixed32 s1 = 2;
+    fixed32 s2 = 3;
+    fixed32 s3 = 4;
+    fixed32 s4 = 5;
+}
+
 // Block
 message Block {
     BlockHeader block_header    = 1;
@@ -43,8 +51,8 @@ message Tx {
         uint64   sequence           = 4;
     }
     message TxOut {
-        uint64 value       = 1;
-        bytes  lock_script = 2;
+        uint64  value         = 1;
+        Hash160 script_hash   = 2;
     }
     message Evidence {
         bytes  digest       = 1;
