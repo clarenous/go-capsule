@@ -9,7 +9,6 @@ import (
 	"github.com/golang/groupcache/lru"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/clarenous/go-capsule/consensus"
 	"github.com/clarenous/go-capsule/event"
 	"github.com/clarenous/go-capsule/protocol/types"
 
@@ -49,7 +48,6 @@ type TxDesc struct {
 	StatusFail bool      `json:"status_fail"`
 	Height     uint64    `json:"-"`
 	Weight     uint64    `json:"-"`
-	Fee        uint64    `json:"-"`
 }
 
 // TxPoolMsg is use for notify pool changes
@@ -134,8 +132,8 @@ func (tp *TxPool) RemoveTransaction(txHash *types.Hash) {
 		return
 	}
 
-	for _, output := range txD.Tx.ResultIds {
-		delete(tp.utxo, *output)
+	for i, _ := range txD.Tx.Outputs {
+		delete(tp.utxo, txD.Tx.OutHash(i))
 	}
 	delete(tp.pool, *txHash)
 
@@ -192,29 +190,19 @@ func (tp *TxPool) HaveTransaction(txHash *types.Hash) bool {
 	return tp.IsTransactionInPool(txHash) || tp.IsTransactionInErrCache(txHash)
 }
 
-func isTransactionNoBtmInput(tx *types.Tx) bool {
-	for _, input := range tx.TxData.Inputs {
-		if input.AssetID() == *consensus.BTMAssetID {
-			return false
-		}
-	}
-	return true
-}
-
 func (tp *TxPool) IsDust(tx *types.Tx) bool {
-	return isTransactionNoBtmInput(tx)
+	// TODO: 增加粉尘交易规则
+	return false
 }
 
-func (tp *TxPool) processTransaction(tx *types.Tx, statusFail bool, height, fee uint64) (bool, error) {
+func (tp *TxPool) processTransaction(tx *types.Tx, height uint64) (bool, error) {
 	tp.mtx.Lock()
 	defer tp.mtx.Unlock()
 
 	txD := &TxDesc{
-		Tx:         tx,
-		StatusFail: statusFail,
-		Weight:     tx.SerializedSize,
-		Height:     height,
-		Fee:        fee,
+		Tx:     tx,
+		Weight: tx.SerializedSize(),
+		Height: height,
 	}
 	requireParents, err := tp.checkOrphanUtxos(tx)
 	if err != nil {
@@ -234,12 +222,12 @@ func (tp *TxPool) processTransaction(tx *types.Tx, statusFail bool, height, fee 
 }
 
 // ProcessTransaction is the main entry for txpool handle new tx, ignore dust tx.
-func (tp *TxPool) ProcessTransaction(tx *types.Tx, statusFail bool, height, fee uint64) (bool, error) {
+func (tp *TxPool) ProcessTransaction(tx *types.Tx, height uint64) (bool, error) {
 	if tp.IsDust(tx) {
 		log.WithFields(log.Fields{"module": logModule, "tx_id": tx.Hash().String()}).Warn("dust tx")
 		return false, nil
 	}
-	return tp.processTransaction(tx, statusFail, height, fee)
+	return tp.processTransaction(tx, height)
 }
 
 func (tp *TxPool) addOrphan(txD *TxDesc, requireParents []*types.Hash) error {
@@ -266,15 +254,8 @@ func (tp *TxPool) addTransaction(txD *TxDesc) error {
 	tx := txD.Tx
 	txD.Added = time.Now()
 	tp.pool[tx.Hash()] = txD
-	for _, id := range tx.ResultIds {
-		output, err := tx.Output(*id)
-		if err != nil {
-			// error due to it's a retirement, utxo doesn't care this output type so skip it
-			continue
-		}
-		if !txD.StatusFail || *output.Source.Value.AssetId == *consensus.BTMAssetID {
-			tp.utxo[*id] = tx
-		}
+	for i, _ := range tx.Outputs {
+		tp.utxo[tx.OutHash(i)] = tx
 	}
 
 	atomic.StoreInt64(&tp.lastUpdated, time.Now().Unix())
@@ -285,17 +266,18 @@ func (tp *TxPool) addTransaction(txD *TxDesc) error {
 
 func (tp *TxPool) checkOrphanUtxos(tx *types.Tx) ([]*types.Hash, error) {
 	view := state.NewUtxoViewpoint()
-	if err := tp.store.GetTransactionsUtxo(view, []*types.Tx{tx.Tx}); err != nil {
+	if err := tp.store.GetTransactionsUtxo(view, []*types.Tx{tx}); err != nil {
 		return nil, err
 	}
 
-	hashes := []*types.Hash{}
-	for _, hash := range tx.SpentOutputIDs {
+	parents := []*types.Hash{}
+	for _, in := range tx.Inputs {
+		hash := in.ValueSource.Hash()
 		if !view.CanSpend(&hash) && tp.utxo[hash] == nil {
-			hashes = append(hashes, &hash)
+			parents = append(parents, &in.ValueSource.TxID)
 		}
 	}
-	return hashes, nil
+	return parents, nil
 }
 
 func (tp *TxPool) orphanExpireWorker() {
@@ -308,16 +290,12 @@ func (tp *TxPool) orphanExpireWorker() {
 func (tp *TxPool) processOrphans(txD *TxDesc) {
 	processOrphans := []*orphanTx{}
 	addRely := func(tx *types.Tx) {
-		for _, outHash := range tx.ResultIds {
-			orphans, ok := tp.orphansByPrev[*outHash]
-			if !ok {
-				continue
-			}
-
+		parentHash := tx.Hash()
+		if orphans, ok := tp.orphansByPrev[parentHash]; ok {
 			for _, orphan := range orphans {
 				processOrphans = append(processOrphans, orphan)
 			}
-			delete(tp.orphansByPrev, *outHash)
+			delete(tp.orphansByPrev, parentHash)
 		}
 	}
 
@@ -326,7 +304,7 @@ func (tp *TxPool) processOrphans(txD *TxDesc) {
 		processOrphan := processOrphans[0]
 		requireParents, err := tp.checkOrphanUtxos(processOrphan.Tx)
 		if err != nil {
-			log.WithFields(log.Fields{"module": logModule, "err": err}).Error("processOrphans got unexpect error")
+			log.WithFields(log.Fields{"module": logModule, "err": err}).Error("processOrphans got unexpected error")
 			continue
 		}
 
@@ -344,14 +322,15 @@ func (tp *TxPool) removeOrphan(hash *types.Hash) {
 		return
 	}
 
-	for _, spend := range orphan.Tx.SpentOutputIDs {
-		orphans, ok := tp.orphansByPrev[spend]
+	for _, in := range orphan.Tx.Inputs {
+		parentHash := in.ValueSource.TxID
+		orphans, ok := tp.orphansByPrev[parentHash]
 		if !ok {
 			continue
 		}
 
 		if delete(orphans, *hash); len(orphans) == 0 {
-			delete(tp.orphansByPrev, spend)
+			delete(tp.orphansByPrev, parentHash)
 		}
 	}
 	delete(tp.orphans, *hash)

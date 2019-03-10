@@ -11,16 +11,24 @@ type Tx struct {
 
 // TxIn
 type TxIn struct {
-	PreviousOutPoint OutPoint
-	RedeemScript     []byte
-	UnlockScript     []byte
-	Sequence         uint64
+	ValueSource  ValueSource
+	RedeemScript []byte
+	UnlockScript []byte
+	Sequence     uint64
 }
 
-// OutPoint
-type OutPoint struct {
+// ValueSource
+type ValueSource struct {
 	TxID  Hash
 	Index uint64
+}
+
+func (vs *ValueSource) Hash() Hash {
+	return GetID(vs)
+}
+
+func (vs *ValueSource) bytesForID() []byte {
+	return []byte{}
 }
 
 // TxOut
@@ -35,4 +43,20 @@ func (tx *Tx) bytesForID() []byte {
 
 func (tx *Tx) Hash() Hash {
 	return GetID(tx)
+}
+
+func (tx *Tx) OutHash(index int) Hash {
+	if index >= len(tx.Outputs) {
+		panic("out of index for tx OutHash")
+	}
+	vs := ValueSource{
+		TxID:  tx.Hash(),
+		Index: uint64(index),
+	}
+	return vs.Hash()
+}
+
+func (tx *Tx) SerializedSize() uint64 {
+	// TODO: Calc Size
+	return 0
 }

@@ -41,14 +41,14 @@ message BlockHeader {
 // Transaction
 message Tx {
     message TxIn {
-        message OutPoint {
+        message ValueSource {
             Hash      txid  = 1;
             uint64    index = 2;
         }
-        OutPoint previous_out_point = 1;
-        bytes    redeem_script      = 2;
-        bytes    unlock_script      = 3;
-        uint64   sequence           = 4;
+        ValueSource value_source  = 1;
+        bytes       redeem_script = 2;
+        bytes       unlock_script = 3;
+        uint64      sequence      = 4;
     }
     message TxOut {
         uint64  value         = 1;

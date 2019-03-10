@@ -2,6 +2,7 @@ package validation
 
 import (
 	"fmt"
+	"github.com/bytom/protocol/vm"
 	"math"
 
 	"github.com/clarenous/go-capsule/consensus"
@@ -9,7 +10,6 @@ import (
 	"github.com/clarenous/go-capsule/errors"
 	"github.com/clarenous/go-capsule/math/checked"
 	"github.com/clarenous/go-capsule/protocol/types"
-	"github.com/clarenous/go-capsule/protocol/txscript"
 )
 
 const ruleAA = 142500
@@ -18,7 +18,7 @@ const ruleAA = 142500
 var (
 	ErrTxVersion                 = errors.New("invalid transaction version")
 	ErrWrongTransactionSize      = errors.New("invalid transaction size")
-	ErrBadTimeRange              = errors.New("invalid transaction time range")
+	ErrBadLockTime               = errors.New("invalid transaction lock time")
 	ErrEmptyInputIDs             = errors.New("got the empty InputIDs")
 	ErrNotStandardTx             = errors.New("not standard transaction")
 	ErrWrongCoinbaseTransaction  = errors.New("wrong coinbase transaction")
@@ -108,8 +108,8 @@ type validationState struct {
 	tx        *types.Tx
 	gasStatus *GasState
 	entryID   types.Hash           // The ID of the nearest enclosing entry
-	sourcePos uint64            // The source position, for validate ValueSources
-	destPos   uint64            // The destination position, for validate ValueDestinations
+	sourcePos uint64               // The source position, for validate ValueSources
+	destPos   uint64               // The destination position, for validate ValueDestinations
 	cache     map[types.Hash]error // Memoized per-entry validation results
 }
 
@@ -440,78 +440,44 @@ func checkValidDest(vs *validationState, vd *types.ValueDestination) error {
 }
 
 func checkStandardTx(tx *types.Tx, blockHeight uint64) error {
-	for _, id := range tx.InputIDs {
-		if blockHeight >= ruleAA && id.IsZero() {
+	for _, in := range tx.Inputs {
+		if in.ValueSource.TxID.IsZero() {
 			return ErrEmptyInputIDs
 		}
 	}
 
-	for _, id := range tx.GasInputIDs {
-		spend, err := tx.Spend(id)
-		if err != nil {
-			continue
-		}
-		spentOutput, err := tx.Output(*spend.SpentOutputId)
-		if err != nil {
-			return err
-		}
-
-		if !segwit.IsP2WScript(spentOutput.ControlProgram.Code) {
-			return ErrNotStandardTx
-		}
-	}
-
-	for _, id := range tx.ResultIds {
-		e, ok := tx.Entries[*id]
-		if !ok {
-			return errors.Wrapf(types.ErrMissingEntry, "id %x", id.Bytes())
-		}
-
-		output, ok := e.(*types.Output)
-		if !ok || *output.Source.Value.AssetId != *consensus.BTMAssetID {
-			continue
-		}
-
-		if !segwit.IsP2WScript(output.ControlProgram.Code) {
-			return ErrNotStandardTx
-		}
-	}
+	// TODO: 检查 入金 与 出金 的大小关系
 	return nil
 }
 
-func checkTimeRange(tx *types.Tx, block *types.Block) error {
-	if tx.TimeRange == 0 {
+func checkLockTime(tx *types.Tx, block *types.Block) error {
+	if tx.LockTime == 0 {
 		return nil
 	}
 
-	if tx.TimeRange < block.Height {
-		return ErrBadTimeRange
+	if tx.LockTime >= block.Height {
+		return ErrBadLockTime
 	}
 	return nil
 }
 
 // ValidateTx validates a transaction.
-func ValidateTx(tx *types.Tx, block *types.Block) (*GasState, error) {
-	gasStatus := &GasState{GasValid: false}
-	if block.Version == 1 && tx.Version != 1 {
-		return gasStatus, errors.WithDetailf(ErrTxVersion, "block version %d, transaction version %d", block.Version, tx.Version)
-	}
+func ValidateTx(tx *types.Tx, block *types.Block) error {
 	if tx.SerializedSize == 0 {
-		return gasStatus, ErrWrongTransactionSize
+		return ErrWrongTransactionSize
 	}
-	if err := checkTimeRange(tx, block); err != nil {
-		return gasStatus, err
+	if err := checkLockTime(tx, block); err != nil {
+		return err
 	}
 	if err := checkStandardTx(tx, block.Height); err != nil {
-		return gasStatus, err
+		return err
 	}
 
 	vs := &validationState{
-		block:     block,
-		tx:        tx,
-		entryID:   tx.ID,
-		gasStatus: gasStatus,
-		cache:     make(map[types.Hash]error),
+		block:   block,
+		tx:      tx,
+		entryID: tx.Hash(),
+		cache:   make(map[types.Hash]error),
 	}
-	return vs.gasStatus, checkValid(vs, tx.TxHeader)
+	return checkValid(vs, tx.TxHeader)
 }

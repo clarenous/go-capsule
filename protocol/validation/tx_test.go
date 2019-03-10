@@ -852,7 +852,7 @@ func TestRuleAA(t *testing.T) {
 
 }
 
-// TestTimeRange test the checkTimeRange function (txtest#1004)
+// TestTimeRange test the checkLockTime function (txtest#1004)
 func TestTimeRange(t *testing.T) {
 	cases := []struct {
 		timeRange uint64

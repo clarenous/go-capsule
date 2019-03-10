@@ -91,7 +91,8 @@ func ValidateBlock(b *types.Block, parent *state.BlockNode) error {
 	coinbaseAmount := consensus.BlockSubsidy(b.BlockHeader.Height)
 
 	for i, tx := range b.Transactions {
-		gasStatus, err := ValidateTx(tx, b)
+		// TODO:计算矿工收益
+		err := ValidateTx(tx, b)
 		if !gasStatus.GasValid {
 			return errors.Wrapf(err, "validate of transaction %d of %d", i, len(b.Transactions))
 		}
