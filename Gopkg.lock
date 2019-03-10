@@ -333,14 +333,6 @@
   version = "v0.9.0"
 
 [[projects]]
-  digest = "1:ad9c4c1a4e7875330b1f62906f2830f043a23edb5db997e3a5ac5d3e6eadf80a"
-  name = "github.com/tendermint/go-wire"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "dc14acf9ef15f85828bfbc561ed9dd9d2a284885"
-  version = "v0.14.1"
-
-[[projects]]
   digest = "1:16503a0105f9691b6d311537898ad99de7382016fa18a5fb4851614b93c00fce"
   name = "github.com/tendermint/tmlibs"
   packages = [
@@ -456,8 +448,8 @@
     "github.com/syndtr/goleveldb/leveldb/opt",
     "github.com/syndtr/goleveldb/leveldb/storage",
     "github.com/syndtr/goleveldb/leveldb/util",
+    "github.com/tendermint/go-amino",
     "github.com/tendermint/go-crypto",
-    "github.com/tendermint/go-wire",
     "github.com/tendermint/tmlibs/common",
     "github.com/tendermint/tmlibs/db",
     "github.com/tendermint/tmlibs/flowrate",
