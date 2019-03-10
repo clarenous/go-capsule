@@ -6,7 +6,6 @@ import (
 	"math"
 
 	"github.com/clarenous/go-capsule/consensus"
-	"github.com/clarenous/go-capsule/consensus/segwit"
 	"github.com/clarenous/go-capsule/errors"
 	"github.com/clarenous/go-capsule/math/checked"
 	"github.com/clarenous/go-capsule/protocol/types"
@@ -463,7 +462,7 @@ func checkLockTime(tx *types.Tx, block *types.Block) error {
 
 // ValidateTx validates a transaction.
 func ValidateTx(tx *types.Tx, block *types.Block) error {
-	if tx.SerializedSize == 0 {
+	if tx.SerializedSize() == 0 {
 		return ErrWrongTransactionSize
 	}
 	if err := checkLockTime(tx, block); err != nil {
