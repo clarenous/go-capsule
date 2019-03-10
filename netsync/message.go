@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/tendermint/go-wire"
+	wire "github.com/tendermint/go-wire"
 
 	"github.com/clarenous/go-capsule/protocol/types"
 )
@@ -29,7 +29,6 @@ const (
 	FilterLoadByte      = byte(0x50)
 	FilterAddByte       = byte(0x51)
 	FilterClearByte     = byte(0x52)
-	MerkleRequestByte   = byte(0x60)
 	MerkleResponseByte  = byte(0x61)
 
 	maxBlockchainResponseSize = 22020096 + 2
@@ -55,7 +54,6 @@ var _ = wire.RegisterInterface(
 	wire.ConcreteType{&FilterLoadMessage{}, FilterLoadByte},
 	wire.ConcreteType{&FilterAddMessage{}, FilterAddByte},
 	wire.ConcreteType{&FilterClearMessage{}, FilterClearByte},
-	wire.ConcreteType{&GetMerkleBlockMessage{}, MerkleRequestByte},
 	wire.ConcreteType{&MerkleBlockMessage{}, MerkleResponseByte},
 )
 
@@ -398,25 +396,6 @@ type FilterClearMessage struct{}
 
 func (m *FilterClearMessage) String() string {
 	return "{}"
-}
-
-//GetMerkleBlockMessage request merkle blocks from remote peers by height/hash
-type GetMerkleBlockMessage struct {
-	Height  uint64
-	RawHash [32]byte
-}
-
-//GetHash reutrn the hash of the request
-func (m *GetMerkleBlockMessage) GetHash() *types.Hash {
-	hash := types.NewHash(m.RawHash)
-	return &hash
-}
-
-func (m *GetMerkleBlockMessage) String() string {
-	if m.Height > 0 {
-		return fmt.Sprintf("{height: %d}", m.Height)
-	}
-	return fmt.Sprintf("{hash: %s}", hex.EncodeToString(m.RawHash[:]))
 }
 
 //MerkleBlockMessage return the merkle block to client

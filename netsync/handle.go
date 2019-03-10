@@ -2,6 +2,7 @@ package netsync
 
 import (
 	"errors"
+	"github.com/tendermint/go-crypto"
 	"reflect"
 
 	log "github.com/sirupsen/logrus"
@@ -246,37 +247,6 @@ func (sm *SyncManager) handleGetHeadersMsg(peer *peer, msg *GetHeadersMessage) {
 	}
 	if err != nil {
 		log.WithFields(log.Fields{"module": logModule, "err": err}).Error("fail on handleGetHeadersMsg sentBlock")
-	}
-}
-
-func (sm *SyncManager) handleGetMerkleBlockMsg(peer *peer, msg *GetMerkleBlockMessage) {
-	var err error
-	var block *types.Block
-	if msg.Height != 0 {
-		block, err = sm.chain.GetBlockByHeight(msg.Height)
-	} else {
-		block, err = sm.chain.GetBlockByHash(msg.GetHash())
-	}
-	if err != nil {
-		log.WithFields(log.Fields{"module": logModule, "err": err}).Warning("fail on handleGetMerkleBlockMsg get block from chain")
-		return
-	}
-
-	blockHash := block.Hash()
-	txStatus, err := sm.chain.GetTransactionStatus(&blockHash)
-	if err != nil {
-		log.WithFields(log.Fields{"module": logModule, "err": err}).Warning("fail on handleGetMerkleBlockMsg get transaction status")
-		return
-	}
-
-	ok, err := peer.sendMerkleBlock(block, txStatus)
-	if err != nil {
-		log.WithFields(log.Fields{"module": logModule, "err": err}).Error("fail on handleGetMerkleBlockMsg sentMerkleBlock")
-		return
-	}
-
-	if !ok {
-		sm.peers.removePeer(peer.ID())
 	}
 }
 
