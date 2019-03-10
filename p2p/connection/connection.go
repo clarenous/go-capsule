@@ -2,6 +2,7 @@ package connection
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"math"
 	"net"
@@ -242,7 +243,7 @@ func (c *MConnection) flush() {
 func (c *MConnection) _recover() {
 	if r := recover(); r != nil {
 		stack := debug.Stack()
-		err := cmn.StackError{r, stack}
+		err := errors.New(fmt.Sprintf("Error: %v\nStack: %s", r, stack))
 		c.stopForError(err)
 	}
 }

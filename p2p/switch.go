@@ -73,7 +73,7 @@ func NewSwitch(config *cfg.Config) (*Switch, error) {
 	var listenAddr string
 	var discv *discover.Network
 
-	blacklistDB := dbm.NewDB("trusthistory", config.DBBackend, config.DBDir())
+	blacklistDB := dbm.NewDB("trusthistory", dbm.DBBackendType(config.DBBackend), config.DBDir())
 	config.P2P.PrivateKey, err = config.NodeKey()
 	if err != nil {
 		return nil, err
@@ -128,7 +128,7 @@ func newSwitch(config *cfg.Config, discv discv, blacklistDB dbm.DB, l Listener, 
 // OnStart implements BaseService. It starts all the reactors, peers, and listeners.
 func (sw *Switch) OnStart() error {
 	for _, reactor := range sw.reactors {
-		if _, err := reactor.Start(); err != nil {
+		if err := reactor.Start(); err != nil {
 			return err
 		}
 	}
@@ -469,7 +469,7 @@ func (sw *Switch) ensureOutboundPeersRoutine() {
 		select {
 		case <-ticker.C:
 			sw.ensureOutboundPeers()
-		case <-sw.Quit:
+		case <-sw.Quit():
 			return
 		}
 	}
@@ -477,7 +477,7 @@ func (sw *Switch) ensureOutboundPeersRoutine() {
 
 func (sw *Switch) startInitPeer(peer *Peer) error {
 	// spawn send/recv routines
-	if _, err := peer.Start(); err != nil {
+	if err := peer.Start(); err != nil {
 		log.WithFields(log.Fields{"module": logModule, "remote peer:": peer.RemoteAddr, " err:": err}).Error("init peer err")
 	}
 

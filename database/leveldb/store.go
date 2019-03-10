@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
 	"github.com/tendermint/tmlibs/common"
 	dbm "github.com/tendermint/tmlibs/db"

@@ -2,6 +2,7 @@ package p2p
 
 import (
 	"fmt"
+	"github.com/tendermint/go-amino"
 	"net"
 	"reflect"
 	"strconv"
@@ -60,7 +61,7 @@ type Peer struct {
 // OnStart implements BaseService.
 func (p *Peer) OnStart() error {
 	p.BaseService.OnStart()
-	_, err := p.mconn.Start()
+	err := p.mconn.Start()
 	return err
 }
 
