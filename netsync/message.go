@@ -13,11 +13,6 @@ import (
 )
 
 func init() {
-	// NOTE: It's important that there be no conflicts here,
-	// as that would change the canonical representations,
-	// and therefore change the address.
-	// TODO: Add feature to go-amino to ensure that there
-	// are no conflicts.
 	RegisterAmino(cdc)
 }
 
@@ -38,7 +33,6 @@ const (
 	FilterLoadByte      = byte(0x50)
 	FilterAddByte       = byte(0x51)
 	FilterClearByte     = byte(0x52)
-	MerkleResponseByte  = byte(0x61)
 
 	maxBlockchainResponseSize = 22020096 + 2
 )
@@ -60,7 +54,6 @@ func RegisterAmino(cdc *amino.Codec) {
 	cdc.RegisterConcrete(&FilterLoadMessage{}, string(FilterLoadByte), nil)
 	cdc.RegisterConcrete(&FilterAddMessage{}, string(FilterAddByte), nil)
 	cdc.RegisterConcrete(&FilterClearMessage{}, string(FilterClearByte), nil)
-	cdc.RegisterConcrete(&MerkleBlockMessage{}, string(MerkleResponseByte), nil)
 }
 
 //BlockchainMessage is a generic message for this reactor.
@@ -407,65 +400,4 @@ type FilterClearMessage struct{}
 
 func (m *FilterClearMessage) String() string {
 	return "{}"
-}
-
-//MerkleBlockMessage return the merkle block to client
-type MerkleBlockMessage struct {
-	RawBlockHeader []byte
-	TxHashes       [][32]byte
-	RawTxDatas     [][]byte
-	StatusHashes   [][32]byte
-	RawTxStatuses  [][]byte
-	Flags          []byte
-}
-
-func (m *MerkleBlockMessage) setRawBlockHeader(bh types.BlockHeader) error {
-	rawHeader, err := bh.MarshalText()
-	if err != nil {
-		return err
-	}
-
-	m.RawBlockHeader = rawHeader
-	return nil
-}
-
-func (m *MerkleBlockMessage) setTxInfo(txHashes []*types.Hash, txFlags []uint8, relatedTxs []*types.Tx) error {
-	for _, txHash := range txHashes {
-		m.TxHashes = append(m.TxHashes, txHash.Byte32())
-	}
-	for _, tx := range relatedTxs {
-		rawTxData, err := tx.MarshalText()
-		if err != nil {
-			return err
-		}
-
-		m.RawTxDatas = append(m.RawTxDatas, rawTxData)
-	}
-	m.Flags = txFlags
-	return nil
-}
-
-func (m *MerkleBlockMessage) setStatusInfo(statusHashes []*types.Hash, relatedStatuses []*types.TxVerifyResult) error {
-	for _, statusHash := range statusHashes {
-		m.StatusHashes = append(m.StatusHashes, statusHash.Byte32())
-	}
-
-	for _, status := range relatedStatuses {
-		rawStatusData, err := json.Marshal(status)
-		if err != nil {
-			return err
-		}
-
-		m.RawTxStatuses = append(m.RawTxStatuses, rawStatusData)
-	}
-	return nil
-}
-
-func (m *MerkleBlockMessage) String() string {
-	return "{}"
-}
-
-//NewMerkleBlockMessage construct merkle block message
-func NewMerkleBlockMessage() *MerkleBlockMessage {
-	return &MerkleBlockMessage{}
 }

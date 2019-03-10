@@ -73,7 +73,7 @@ func newBlockKeeper(chain Chain, peers *peerSet) *blockKeeper {
 func (bk *blockKeeper) appendHeaderList(headers []*types.BlockHeader) error {
 	for _, header := range headers {
 		prevHeader := bk.headerList.Back().Value.(*types.BlockHeader)
-		if prevHeader.Hash() != header.PreviousBlockHash {
+		if prevHeader.Hash() != header.Previous {
 			return errAppendHeaders
 		}
 		bk.headerList.PushBack(header)

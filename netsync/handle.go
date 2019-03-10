@@ -35,7 +35,6 @@ type Chain interface {
 	GetBlockByHeight(uint64) (*types.Block, error)
 	GetHeaderByHash(*types.Hash) (*types.BlockHeader, error)
 	GetHeaderByHeight(uint64) (*types.BlockHeader, error)
-	GetTransactionStatus(*types.Hash) (*types.TransactionStatus, error)
 	InMainChain(types.Hash) bool
 	ProcessBlock(*types.Block) (bool, error)
 	ValidateTx(*types.Tx) (bool, error)
@@ -46,8 +45,8 @@ type Switch interface {
 	AddBannedPeer(string) error
 	StopPeerGracefully(string)
 	NodeInfo() *p2p.NodeInfo
-	Start() (bool, error)
-	Stop() bool
+	Start() error
+	Stop() error
 	IsListening() bool
 	DialPeerWithAddress(addr *p2p.NetAddress) error
 	Peers() *p2p.PeerSet
@@ -387,9 +386,6 @@ func (sm *SyncManager) processMsg(basePeer BasePeer, msgType byte, msg Blockchai
 	case *FilterClearMessage:
 		sm.handleFilterClearMsg(peer)
 
-	case *GetMerkleBlockMessage:
-		sm.handleGetMerkleBlockMsg(peer, msg)
-
 	default:
 		log.WithFields(log.Fields{
 			"module":       logModule,
@@ -401,7 +397,7 @@ func (sm *SyncManager) processMsg(basePeer BasePeer, msgType byte, msg Blockchai
 
 func (sm *SyncManager) Start() error {
 	var err error
-	if _, err = sm.sw.Start(); err != nil {
+	if err = sm.sw.Start(); err != nil {
 		log.Error("switch start err")
 		return err
 	}

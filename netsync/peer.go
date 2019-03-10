@@ -2,6 +2,7 @@ package netsync
 
 import (
 	"encoding/hex"
+	"gopkg.in/fatih/set.v0"
 	"net"
 	"reflect"
 	"sync"
@@ -68,9 +69,9 @@ func newPeer(height uint64, hash *types.Hash, basePeer BasePeer) *peer {
 		services:    basePeer.ServiceFlag(),
 		height:      height,
 		hash:        hash,
-		knownTxs:    set.New(),
-		knownBlocks: set.New(),
-		filterAdds:  set.New(),
+		knownTxs:    set.New(set.ThreadSafe).(*set.Set),
+		knownBlocks: set.New(set.ThreadSafe).(*set.Set),
+		filterAdds:  set.New(set.ThreadSafe).(*set.Set),
 	}
 }
 
@@ -169,35 +170,6 @@ func (p *peer) getPeerInfo() *PeerInfo {
 	}
 }
 
-func (p *peer) getRelatedTxAndStatus(txs []*types.Tx, txStatuses *types.TransactionStatus) ([]*types.Tx, []*types.TxVerifyResult) {
-	var relatedTxs []*types.Tx
-	var relatedStatuses []*types.TxVerifyResult
-	for i, tx := range txs {
-		if p.isRelatedTx(tx) {
-			relatedTxs = append(relatedTxs, tx)
-			relatedStatuses = append(relatedStatuses, txStatuses.VerifyStatus[i])
-		}
-	}
-	return relatedTxs, relatedStatuses
-}
-
-func (p *peer) isRelatedTx(tx *types.Tx) bool {
-	for _, input := range tx.Inputs {
-		switch inp := input.TypedInput.(type) {
-		case *types.SpendInput:
-			if p.filterAdds.Has(hex.EncodeToString(inp.ControlProgram)) {
-				return true
-			}
-		}
-	}
-	for _, output := range tx.Outputs {
-		if p.filterAdds.Has(hex.EncodeToString(output.ControlProgram)) {
-			return true
-		}
-	}
-	return false
-}
-
 func (p *peer) isSPVNode() bool {
 	return !p.services.IsEnable(consensus.SFFullNode)
 }
@@ -263,45 +235,20 @@ func (p *peer) sendHeaders(headers []*types.BlockHeader) (bool, error) {
 	return ok, nil
 }
 
-func (p *peer) sendMerkleBlock(block *types.Block, txStatuses *types.TransactionStatus) (bool, error) {
-	msg := NewMerkleBlockMessage()
-	if err := msg.setRawBlockHeader(block.BlockHeader); err != nil {
-		return false, err
-	}
-
-	relatedTxs, relatedStatuses := p.getRelatedTxAndStatus(block.Transactions, txStatuses)
-
-	txHashes, txFlags := types.GetTxMerkleTreeProof(block.Transactions, relatedTxs)
-	if err := msg.setTxInfo(txHashes, txFlags, relatedTxs); err != nil {
-		return false, nil
-	}
-
-	statusHashes := types.GetStatusMerkleTreeProof(txStatuses.VerifyStatus, txFlags)
-	if err := msg.setStatusInfo(statusHashes, relatedStatuses); err != nil {
-		return false, nil
-	}
-
-	ok := p.TrySend(BlockchainChannel, struct{ BlockchainMessage }{msg})
-	return ok, nil
-}
-
 func (p *peer) sendTransactions(txs []*types.Tx) (bool, error) {
 	for _, tx := range txs {
-		if p.isSPVNode() && !p.isRelatedTx(tx) {
-			continue
-		}
 		msg, err := NewTransactionMessage(tx)
 		if err != nil {
 			return false, errors.Wrap(err, "failed to tx msg")
 		}
 
-		if p.knownTxs.Has(tx.ID.String()) {
+		if p.knownTxs.Has(tx.Hash().String()) {
 			continue
 		}
 		if ok := p.TrySend(BlockchainChannel, struct{ BlockchainMessage }{msg}); !ok {
 			return ok, nil
 		}
-		p.knownTxs.Add(tx.ID.String())
+		p.knownTxs.Add(tx.Hash().String())
 	}
 	return true, nil
 }
@@ -415,11 +362,8 @@ func (ps *peerSet) broadcastTx(tx *types.Tx) error {
 		return errors.Wrap(err, "fail on broadcast tx")
 	}
 
-	peers := ps.peersWithoutTx(&tx.ID)
+	peers := ps.peersWithoutTx(tx.Hash().Ptr())
 	for _, peer := range peers {
-		if peer.isSPVNode() && !peer.isRelatedTx(tx) {
-			continue
-		}
 		if ok := peer.TrySend(BlockchainChannel, struct{ BlockchainMessage }{msg}); !ok {
 			log.WithFields(log.Fields{
 				"module":  logModule,
@@ -430,7 +374,7 @@ func (ps *peerSet) broadcastTx(tx *types.Tx) error {
 			ps.removePeer(peer.ID())
 			continue
 		}
-		peer.markTransaction(&tx.ID)
+		peer.markTransaction(tx.Hash().Ptr())
 	}
 	return nil
 }
