@@ -9,7 +9,7 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/tendermint/go-wire"
+	"github.com/tendermint/go-amino"
 	"golang.org/x/crypto/sha3"
 
 	"github.com/clarenous/go-capsule/common"
@@ -405,7 +405,7 @@ loop:
 			log.WithFields(log.Fields{"module": logModule}).Debug("close request")
 			break loop
 
-		// Ingress packet handling.
+			// Ingress packet handling.
 		case pkt := <-net.read:
 			log.WithFields(log.Fields{"module": logModule}).Debug("read from net")
 			n := net.internNode(&pkt)
@@ -418,7 +418,7 @@ loop:
 
 			// TODO: persist state if n.state goes >= known, delete if it goes <= known
 
-		// State transition timeouts.
+			// State transition timeouts.
 		case timeout := <-net.timeout:
 			log.WithFields(log.Fields{"module": logModule}).Debug("net timeout")
 			if net.timeoutTimers[timeout] == nil {
@@ -433,20 +433,20 @@ loop:
 			}
 			log.WithFields(log.Fields{"module": logModule, "node num": net.tab.count, "event": timeout.ev, "node id": hex.EncodeToString(timeout.node.ID[:8]), "node addr": timeout.node.addr(), "pre state": prestate, "node state": timeout.node.state, "status": status}).Debug("handle timeout")
 
-		// Querying.
+			// Querying.
 		case q := <-net.queryReq:
 			log.WithFields(log.Fields{"module": logModule}).Debug("net query request")
 			if !q.start(net) {
 				q.remote.deferQuery(q)
 			}
 
-		// Interacting with the table.
+			// Interacting with the table.
 		case f := <-net.tableOpReq:
 			log.WithFields(log.Fields{"module": logModule}).Debug("net table operate request")
 			f()
 			net.tableOpResp <- struct{}{}
 
-		// Topic registration stuff.
+			// Topic registration stuff.
 		case req := <-net.topicRegisterReq:
 			log.WithFields(log.Fields{"module": logModule, "topic": req.topic}).Debug("net topic register request")
 			if !req.add {
@@ -584,7 +584,7 @@ loop:
 				}
 			}
 
-		// Periodic / lookup-initiated bucket refresh.
+			// Periodic / lookup-initiated bucket refresh.
 		case <-refreshTimer.C:
 			log.WithFields(log.Fields{"module": logModule}).Debug("refresh timer clock")
 			// TODO: ideally we would start the refresh timer after
@@ -1154,7 +1154,7 @@ func (net *Network) handleQueryEvent(n *Node, ev nodeEvent, pkt *ingressPacket) 
 		}
 		return n.state, nil
 
-	// v5
+		// v5
 
 	case findnodeHashPacket:
 		results := net.tab.closest(pkt.data.(*findnodeHash).Target, bucketSize).entries
@@ -1224,7 +1224,8 @@ func (net *Network) checkTopicRegister(data *topicRegister) (*pong, error) {
 
 func wireHash(x interface{}) (h common.Hash, n int, err error) {
 	hw := sha3.New256()
-	wire.WriteBinary(x, hw, &n, &err)
+	m, err := amino.MarshalBinaryWriter(hw, x)
+	n = int(m)
 	hw.Sum(h[:0])
 	return h, n, err
 }

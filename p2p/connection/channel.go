@@ -1,11 +1,12 @@
 package connection
 
 import (
+	"errors"
 	"io"
 	"sync/atomic"
 	"time"
 
-	wire "github.com/tendermint/go-wire"
+	"github.com/tendermint/go-amino"
 	cmn "github.com/tendermint/tmlibs/common"
 )
 
@@ -104,7 +105,7 @@ func (ch *channel) nextMsgPacket() msgPacket {
 // Not goroutine-safe
 func (ch *channel) recvMsgPacket(packet msgPacket) ([]byte, error) {
 	if ch.desc.RecvMessageCapacity < len(ch.recving)+len(packet.Bytes) {
-		return nil, wire.ErrBinaryReadOverflow
+		return nil, errors.New("Error: binary read overflow")
 	}
 
 	ch.recving = append(ch.recving, packet.Bytes...)
@@ -146,11 +147,13 @@ func (ch *channel) trySendBytes(bytes []byte) bool {
 // Not goroutine-safe
 func (ch *channel) writeMsgPacketTo(w io.Writer) (n int, err error) {
 	packet := ch.nextMsgPacket()
-	wire.WriteByte(packetTypeMsg, w, &n, &err)
-	wire.WriteBinary(packet, w, &n, &err)
+	err = amino.EncodeByte(w, packetTypeMsg)
+	n += 1
+	m, err := amino.MarshalBinaryWriter(w, packet)
 	if err == nil {
 		ch.recentlySent += int64(n)
 	}
+	n += int(m)
 	return
 }
 

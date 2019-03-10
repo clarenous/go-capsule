@@ -6,7 +6,6 @@ import (
 	"net"
 	"time"
 
-	wire "github.com/tendermint/go-wire"
 	"github.com/tendermint/tmlibs/flowrate"
 
 	"github.com/clarenous/go-capsule/consensus"
@@ -57,7 +56,7 @@ func (p *P2PPeer) TrafficStatus() (*flowrate.Status, *flowrate.Status) {
 }
 
 func (p *P2PPeer) TrySend(b byte, msg interface{}) bool {
-	msgBytes := wire.BinaryBytes(msg)
+	msgBytes := cdc.MustMarshalBinary(msg)
 	if p.async {
 		p.msgCh <- msgBytes
 	} else {

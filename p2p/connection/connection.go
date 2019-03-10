@@ -10,7 +10,7 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
-	wire "github.com/tendermint/go-wire"
+	"github.com/tendermint/go-amino"
 	cmn "github.com/tendermint/tmlibs/common"
 	"github.com/tendermint/tmlibs/flowrate"
 )
@@ -187,7 +187,7 @@ func (c *MConnection) Send(chID byte, msg interface{}) bool {
 		return false
 	}
 
-	if !channel.sendBytes(wire.BinaryBytes(msg)) {
+	if !channel.sendBytes(amino.MustMarshalBinary(msg)) {
 		log.WithFields(log.Fields{"module": logModule, "chID": chID, "conn": c, "msg": msg}).Error("MConnection send failed")
 		return false
 	}
@@ -218,7 +218,7 @@ func (c *MConnection) TrySend(chID byte, msg interface{}) bool {
 		return false
 	}
 
-	ok = channel.trySendBytes(wire.BinaryBytes(msg))
+	ok = channel.trySendBytes(amino.MustMarshalBinary(msg))
 	if ok {
 		select {
 		case c.send <- struct{}{}:
@@ -261,7 +261,8 @@ func (c *MConnection) recvRoutine() {
 		// Read packet type
 		var n int
 		var err error
-		pktType := wire.ReadByte(c.bufReader, &n, &err)
+		pktType, err := c.bufReader.ReadByte()
+		n += 1
 		c.recvMonitor.Update(int(n))
 		if err != nil {
 			if c.IsRunning() {
@@ -285,8 +286,8 @@ func (c *MConnection) recvRoutine() {
 			log.WithFields(log.Fields{"module": logModule, "conn": c}).Debug("receive Pong")
 
 		case packetTypeMsg:
-			pkt, n, err := msgPacket{}, int(0), error(nil)
-			wire.ReadBinaryPtr(&pkt, c.bufReader, maxMsgPacketTotalSize, &n, &err)
+			pkt, n, err := msgPacket{}, int64(0), error(nil)
+			n, err = amino.UnmarshalBinaryReader(c.bufReader, &pkt, maxMsgPacketTotalSize)
 			c.recvMonitor.Update(int(n))
 			if err != nil {
 				if c.IsRunning() {
@@ -364,12 +365,14 @@ func (c *MConnection) sendRoutine() {
 			}
 		case <-c.pingTimer.C:
 			log.WithFields(log.Fields{"module": logModule, "conn": c}).Debug("send Ping")
-			wire.WriteByte(packetTypePing, c.bufWriter, &n, &err)
+			err = c.bufWriter.WriteByte(packetTypePing)
+			n = n + 1
 			c.sendMonitor.Update(int(n))
 			c.flush()
 		case <-c.pong:
 			log.WithFields(log.Fields{"module": logModule, "conn": c}).Debug("send Pong")
-			wire.WriteByte(packetTypePong, c.bufWriter, &n, &err)
+			err = c.bufWriter.WriteByte(packetTypePong)
+			n = n + 1
 			c.sendMonitor.Update(int(n))
 			c.flush()
 		case <-c.quit:

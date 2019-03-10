@@ -14,8 +14,8 @@ import (
 	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/crypto/ripemd160"
 
+	"github.com/tendermint/go-amino"
 	"github.com/tendermint/go-crypto"
-	wire "github.com/tendermint/go-wire"
 	cmn "github.com/tendermint/tmlibs/common"
 )
 
@@ -239,18 +239,19 @@ func shareAuthSignature(sc *SecretConnection, pubKey crypto.PubKeyEd25519, signa
 	var err1, err2 error
 
 	cmn.Parallel(
-		func() {
-			msgBytes := wire.BinaryBytes(authSigMessage{pubKey.Wrap(), signature.Wrap()})
+		func(i int) (interface{}, error, bool) {
+			msgBytes := amino.MustMarshalBinary(authSigMessage{pubKey.Wrap(), signature.Wrap()})
 			_, err1 = sc.Write(msgBytes)
+			return nil, err1, false
 		},
-		func() {
+		func(i int) (interface{}, error, bool) {
 			readBuffer := make([]byte, authSigMsgSize)
 			_, err2 = io.ReadFull(sc, readBuffer)
 			if err2 != nil {
-				return
+				return nil, err2, false
 			}
-			n := int(0) // not used.
-			recvMsg = wire.ReadBinary(authSigMessage{}, bytes.NewBuffer(readBuffer), authSigMsgSize, &n, &err2).(authSigMessage)
+			_, err2 = amino.UnmarshalBinaryReader(bytes.NewBuffer(readBuffer), &recvMsg, authSigMsgSize)
+			return nil, err2, false
 		},
 	)
 
@@ -267,12 +268,14 @@ func shareEphPubKey(conn io.ReadWriteCloser, locEphPub *[32]byte) (remEphPub *[3
 	var err1, err2 error
 
 	cmn.Parallel(
-		func() {
+		func(i int) (interface{}, error, bool) {
 			_, err1 = conn.Write(locEphPub[:])
+			return nil, err1, false
 		},
-		func() {
+		func(i int) (interface{}, error, bool) {
 			remEphPub = new([32]byte)
 			_, err2 = io.ReadFull(conn, remEphPub[:])
+			return nil, err2, false
 		},
 	)
 

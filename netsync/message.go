@@ -7,10 +7,19 @@ import (
 	"errors"
 	"fmt"
 
-	wire "github.com/tendermint/go-wire"
+	"github.com/tendermint/go-amino"
 
 	"github.com/clarenous/go-capsule/protocol/types"
 )
+
+func init() {
+	// NOTE: It's important that there be no conflicts here,
+	// as that would change the canonical representations,
+	// and therefore change the address.
+	// TODO: Add feature to go-amino to ensure that there
+	// are no conflicts.
+	RegisterAmino(cdc)
+}
 
 //protocol msg byte
 const (
@@ -34,36 +43,38 @@ const (
 	maxBlockchainResponseSize = 22020096 + 2
 )
 
+var cdc = amino.NewCodec()
+
+func RegisterAmino(cdc *amino.Codec) {
+	cdc.RegisterInterface(struct{ BlockchainMessage }{}, nil)
+	cdc.RegisterConcrete(&GetBlockMessage{}, string(BlockRequestByte), nil)
+	cdc.RegisterConcrete(&BlockMessage{}, string(BlockResponseByte), nil)
+	cdc.RegisterConcrete(&GetHeadersMessage{}, string(HeadersRequestByte), nil)
+	cdc.RegisterConcrete(&HeadersMessage{}, string(HeadersResponseByte), nil)
+	cdc.RegisterConcrete(&GetBlocksMessage{}, string(BlocksRequestByte), nil)
+	cdc.RegisterConcrete(&BlocksMessage{}, string(BlocksResponseByte), nil)
+	cdc.RegisterConcrete(&StatusRequestMessage{}, string(StatusRequestByte), nil)
+	cdc.RegisterConcrete(&StatusResponseMessage{}, string(StatusResponseByte), nil)
+	cdc.RegisterConcrete(&TransactionMessage{}, string(NewTransactionByte), nil)
+	cdc.RegisterConcrete(&MineBlockMessage{}, string(NewMineBlockByte), nil)
+	cdc.RegisterConcrete(&FilterLoadMessage{}, string(FilterLoadByte), nil)
+	cdc.RegisterConcrete(&FilterAddMessage{}, string(FilterAddByte), nil)
+	cdc.RegisterConcrete(&FilterClearMessage{}, string(FilterClearByte), nil)
+	cdc.RegisterConcrete(&MerkleBlockMessage{}, string(MerkleResponseByte), nil)
+}
+
 //BlockchainMessage is a generic message for this reactor.
 type BlockchainMessage interface {
 	String() string
 }
 
-var _ = wire.RegisterInterface(
-	struct{ BlockchainMessage }{},
-	wire.ConcreteType{&GetBlockMessage{}, BlockRequestByte},
-	wire.ConcreteType{&BlockMessage{}, BlockResponseByte},
-	wire.ConcreteType{&GetHeadersMessage{}, HeadersRequestByte},
-	wire.ConcreteType{&HeadersMessage{}, HeadersResponseByte},
-	wire.ConcreteType{&GetBlocksMessage{}, BlocksRequestByte},
-	wire.ConcreteType{&BlocksMessage{}, BlocksResponseByte},
-	wire.ConcreteType{&StatusRequestMessage{}, StatusRequestByte},
-	wire.ConcreteType{&StatusResponseMessage{}, StatusResponseByte},
-	wire.ConcreteType{&TransactionMessage{}, NewTransactionByte},
-	wire.ConcreteType{&MineBlockMessage{}, NewMineBlockByte},
-	wire.ConcreteType{&FilterLoadMessage{}, FilterLoadByte},
-	wire.ConcreteType{&FilterAddMessage{}, FilterAddByte},
-	wire.ConcreteType{&FilterClearMessage{}, FilterClearByte},
-	wire.ConcreteType{&MerkleBlockMessage{}, MerkleResponseByte},
-)
-
 //DecodeMessage decode msg
 func DecodeMessage(bz []byte) (msgType byte, msg BlockchainMessage, err error) {
 	msgType = bz[0]
-	n := int(0)
 	r := bytes.NewReader(bz)
-	msg = wire.ReadBinary(struct{ BlockchainMessage }{}, r, maxBlockchainResponseSize, &n, &err).(struct{ BlockchainMessage }).BlockchainMessage
-	if err != nil && n != len(bz) {
+	n := int64(0)
+	n, err = cdc.UnmarshalBinaryReader(r, &msg, maxBlockchainResponseSize)
+	if err != nil && int(n) != len(bz) {
 		err = errors.New("DecodeMessage() had bytes left over")
 	}
 	return

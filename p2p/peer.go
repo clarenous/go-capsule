@@ -11,7 +11,6 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/tendermint/go-crypto"
-	"github.com/tendermint/go-wire"
 	cmn "github.com/tendermint/tmlibs/common"
 	"github.com/tendermint/tmlibs/flowrate"
 
@@ -149,14 +148,14 @@ func (pc *peerConn) HandshakeTimeout(ourNodeInfo *NodeInfo, timeout time.Duratio
 	var peerNodeInfo = new(NodeInfo)
 	var err1, err2 error
 	cmn.Parallel(
-		func() {
-			var n int
-			wire.WriteBinary(ourNodeInfo, pc.conn, &n, &err1)
+		func(i int) (interface{}, error, bool) {
+			_, err1 = amino.MarshalBinaryWriter(pc.conn, ourNodeInfo)
+			return nil, err1, false
 		},
-		func() {
-			var n int
-			wire.ReadBinary(peerNodeInfo, pc.conn, maxNodeInfoSize, &n, &err2)
+		func(i int) (interface{}, error, bool) {
+			_, err2 = amino.MarshalBinaryWriter(pc.conn, peerNodeInfo)
 			log.WithFields(log.Fields{"module": logModule, "address": peerNodeInfo.ListenAddr}).Info("Peer handshake")
+			return nil, err2, false
 		})
 	if err1 != nil {
 		return peerNodeInfo, errors.Wrap(err1, "Error during handshake/write")

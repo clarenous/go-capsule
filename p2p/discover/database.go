@@ -19,7 +19,7 @@ import (
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 	"github.com/syndtr/goleveldb/leveldb/util"
-	"github.com/tendermint/go-wire"
+	"github.com/tendermint/go-amino"
 
 	"github.com/clarenous/go-capsule/crypto"
 )
@@ -168,7 +168,6 @@ func (db *nodeDB) storeInt64(key []byte, n int64) error {
 // node retrieves a node with a given id from the database.
 func (db *nodeDB) node(id NodeID) *Node {
 	var (
-		n    = int(0)
 		node = new(Node)
 	)
 
@@ -179,7 +178,7 @@ func (db *nodeDB) node(id NodeID) *Node {
 		return nil
 	}
 
-	wire.ReadBinary(node, bytes.NewReader(rawData), 0, &n, &err)
+	_, err = amino.UnmarshalBinaryReader(bytes.NewReader(rawData), node, 0)
 	if err != nil {
 		log.WithFields(log.Fields{"module": logModule, "key": key, "node": node, "error": err}).Warn("get node from db err")
 		return nil
@@ -192,12 +191,11 @@ func (db *nodeDB) node(id NodeID) *Node {
 // updateNode inserts - potentially overwriting - a node into the peer database.
 func (db *nodeDB) updateNode(node *Node) error {
 	var (
-		n    = int(0)
 		err  = error(nil)
 		blob = new(bytes.Buffer)
 	)
 
-	wire.WriteBinary(node, blob, &n, &err)
+	_, err = amino.MarshalBinaryWriter(blob, node)
 	if err != nil {
 		return err
 	}
@@ -378,7 +376,6 @@ func (db *nodeDB) updateTopicRegTickets(id NodeID, issued, used uint32) error {
 // database entries.
 func nextNode(it iterator.Iterator) *Node {
 	var (
-		n    = int(0)
 		err  = error(nil)
 		node = new(Node)
 	)
@@ -389,7 +386,7 @@ func nextNode(it iterator.Iterator) *Node {
 			continue
 		}
 
-		wire.ReadBinary(node, bytes.NewReader(it.Value()), 0, &n, &err)
+		_, err = amino.UnmarshalBinaryReader(bytes.NewReader(it.Value()), node, 0)
 		if err != nil {
 			log.WithFields(log.Fields{"module": logModule, "id": id, "error": err}).Error("invalid node")
 			continue

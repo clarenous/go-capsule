@@ -13,7 +13,7 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/tendermint/go-wire"
+	"github.com/tendermint/go-amino"
 
 	"github.com/clarenous/go-capsule/common"
 	cfg "github.com/clarenous/go-capsule/config"
@@ -178,12 +178,12 @@ var maxNeighbors = func() int {
 		p.Nodes = append(p.Nodes, maxSizeNode)
 		var size int
 		var err error
-		b := new(bytes.Buffer)
-		wire.WriteJSON(p, b, &size, &err)
+		bs, err := amino.MarshalJSON(p)
 		if err != nil {
 			// If this ever happens, it will be caught by the unit tests.
 			panic("cannot encode: " + err.Error())
 		}
+		size = len(bs)
 		if headSize+size+1 >= 1280 {
 			return n
 		}
@@ -197,12 +197,12 @@ var maxTopicNodes = func() int {
 		p.Nodes = append(p.Nodes, maxSizeNode)
 		var size int
 		var err error
-		b := new(bytes.Buffer)
-		wire.WriteJSON(p, b, &size, &err)
+		bs, err := amino.MarshalJSON(p)
 		if err != nil {
 			// If this ever happens, it will be caught by the unit tests.
 			panic("cannot encode: " + err.Error())
 		}
+		size = len(bs)
 		if headSize+size+1 >= 1280 {
 			return n
 		}
@@ -439,12 +439,12 @@ func encodePacket(priv ed25519.PrivateKey, ptype byte, req interface{}) (p, hash
 	b := new(bytes.Buffer)
 	b.Write(headSpace)
 	b.WriteByte(ptype)
-	var size int
-	wire.WriteJSON(req, b, &size, &err)
+	bs, err := amino.MarshalJSON(req)
 	if err != nil {
 		log.WithFields(log.Fields{"module": logModule, "error": err}).Error("error encoding packet")
 		return nil, nil, err
 	}
+	b.Write(bs)
 	packet := b.Bytes()
 	nodeID := priv.Public()
 	sig := ed25519.Sign(priv, common.BytesToHash(packet[headSize:]).Bytes())
@@ -523,7 +523,7 @@ func decodePacket(buffer []byte, pkt *ingressPacket) error {
 		return fmt.Errorf("unknown packet type: %d", sigdata[0])
 	}
 	var err error
-	wire.ReadJSON(pkt.data, sigdata[1:], &err)
+	err = amino.UnmarshalJSON(sigdata[1:], pkt.data)
 	if err != nil {
 		log.WithFields(log.Fields{"module": logModule, "error": err}).Error("wire readjson err")
 	}
