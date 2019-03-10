@@ -20,17 +20,9 @@ func NewUtxoViewpoint() *UtxoViewpoint {
 	}
 }
 
-func (view *UtxoViewpoint) ApplyTransaction(block *types.Block, tx *types.Tx, statusFail bool) error {
-	for _, prevout := range tx.SpentOutputIDs {
-		spentOutput, err := tx.Output(prevout)
-		if err != nil {
-			return err
-		}
-		if statusFail && *spentOutput.Source.Value.AssetId != *consensus.BTMAssetID {
-			continue
-		}
-
-		entry, ok := view.Entries[prevout]
+func (view *UtxoViewpoint) ApplyTransaction(block *types.Block, tx *types.Tx) error {
+	for _, in := range tx.Inputs {
+		entry, ok := view.Entries[in.ValueSource.Hash()]
 		if !ok {
 			return errors.New("fail to find utxo entry")
 		}
@@ -43,21 +35,12 @@ func (view *UtxoViewpoint) ApplyTransaction(block *types.Block, tx *types.Tx, st
 		entry.SpendOutput()
 	}
 
-	for _, id := range tx.TxHeader.ResultIds {
-		output, err := tx.Output(*id)
-		if err != nil {
-			// error due to it's a retirement, utxo doesn't care this output type so skip it
-			continue
-		}
-		if statusFail && *output.Source.Value.AssetId != *consensus.BTMAssetID {
-			continue
-		}
-
+	for i, _ := range tx.Outputs {
 		isCoinbase := false
-		if block != nil && len(block.Transactions) > 0 && block.Transactions[0].ID == tx.ID {
+		if block != nil && len(block.Transactions) > 0 && block.Transactions[0].Hash() == tx.Hash() {
 			isCoinbase = true
 		}
-		view.Entries[*id] = storage.NewUtxoEntry(isCoinbase, block.Height, false)
+		view.Entries[tx.OutHash(i)] = storage.NewUtxoEntry(isCoinbase, block.Height, false)
 	}
 	return nil
 }
@@ -76,49 +59,29 @@ func (view *UtxoViewpoint) CanSpend(hash *types.Hash) bool {
 	return entry != nil && !entry.Spent
 }
 
-func (view *UtxoViewpoint) DetachTransaction(tx *types.Tx, statusFail bool) error {
-	for _, prevout := range tx.SpentOutputIDs {
-		spentOutput, err := tx.Output(prevout)
-		if err != nil {
-			return err
-		}
-		if statusFail && *spentOutput.Source.Value.AssetId != *consensus.BTMAssetID {
-			continue
-		}
-
-		entry, ok := view.Entries[prevout]
+func (view *UtxoViewpoint) DetachTransaction(tx *types.Tx) error {
+	for _, in := range tx.Inputs {
+		utxoHash := in.ValueSource.Hash()
+		entry, ok := view.Entries[utxoHash]
 		if ok && !entry.Spent {
 			return errors.New("try to revert an unspent utxo")
 		}
 		if !ok {
-			view.Entries[prevout] = storage.NewUtxoEntry(false, 0, false)
+			view.Entries[utxoHash] = storage.NewUtxoEntry(false, 0, false)
 			continue
 		}
 		entry.UnspendOutput()
 	}
 
-	for _, id := range tx.TxHeader.ResultIds {
-		output, err := tx.Output(*id)
-		if err != nil {
-			// error due to it's a retirement, utxo doesn't care this output type so skip it
-			continue
-		}
-		if statusFail && *output.Source.Value.AssetId != *consensus.BTMAssetID {
-			continue
-		}
-
-		view.Entries[*id] = storage.NewUtxoEntry(false, 0, true)
+	for i, _ := range tx.Outputs {
+		view.Entries[tx.OutHash(i)] = storage.NewUtxoEntry(false, 0, true)
 	}
 	return nil
 }
 
-func (view *UtxoViewpoint) DetachBlock(block *types.Block, txStatus *types.TransactionStatus) error {
+func (view *UtxoViewpoint) DetachBlock(block *types.Block) error {
 	for i := len(block.Transactions) - 1; i >= 0; i-- {
-		statusFail, err := txStatus.GetStatus(i)
-		if err != nil {
-			return err
-		}
-		if err := view.DetachTransaction(block.Transactions[i], statusFail); err != nil {
+		if err := view.DetachTransaction(block.Transactions[i]); err != nil {
 			return err
 		}
 	}

@@ -47,7 +47,7 @@ func NewBlockNode(bh *types.BlockHeader, parent *BlockNode) (*BlockNode, error) 
 		Timestamp:       bh.Timestamp,
 		Proof:           bh.Proof,
 		TransactionRoot: bh.TransactionRoot,
-		WitnessRoot:     bh.TransactionStatusHash,
+		WitnessRoot:     bh.WitnessRoot,
 	}
 
 	if bh.Height != 0 {

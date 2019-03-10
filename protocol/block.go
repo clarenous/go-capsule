@@ -78,7 +78,7 @@ func (c *Chain) connectBlock(block *types.Block) (err error) {
 	if err := c.store.GetTransactionsUtxo(utxoView, block.Transactions); err != nil {
 		return err
 	}
-	if err := utxoView.ApplyBlock(block, block.TransactionStatus); err != nil {
+	if err := utxoView.ApplyBlock(block); err != nil {
 		return err
 	}
 
@@ -107,7 +107,7 @@ func (c *Chain) reorganizeChain(node *state.BlockNode) error {
 		if err := c.store.GetTransactionsUtxo(utxoView, detachBlock.Transactions); err != nil {
 			return err
 		}
-		if err := utxoView.DetachBlock(detachBlock, txStatus); err != nil {
+		if err := utxoView.DetachBlock(detachBlock); err != nil {
 			return err
 		}
 
@@ -124,7 +124,7 @@ func (c *Chain) reorganizeChain(node *state.BlockNode) error {
 		if err := c.store.GetTransactionsUtxo(utxoView, attachBlock.Transactions); err != nil {
 			return err
 		}
-		if err := utxoView.ApplyBlock(attachBlock, txStatus); err != nil {
+		if err := utxoView.ApplyBlock(attachBlock); err != nil {
 			return err
 		}
 
@@ -141,7 +141,7 @@ func (c *Chain) saveBlock(block *types.Block) error {
 	if err := validation.ValidateBlock(block, parent); err != nil {
 		return errors.Sub(ErrBadBlock, err)
 	}
-	if err := c.store.SaveBlock(block, block.TransactionStatus); err != nil {
+	if err := c.store.SaveBlock(block); err != nil {
 		return err
 	}
 
