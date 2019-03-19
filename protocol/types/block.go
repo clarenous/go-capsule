@@ -27,3 +27,19 @@ func (bh *BlockHeader) bytesForID() []byte {
 func (bh *BlockHeader) Hash() Hash {
 	return GetID(bh)
 }
+
+func (blk *Block) MarshalText() ([]byte, error) {
+	return nil, nil
+}
+
+func (blk *Block) UnmarshalText(buf []byte) error {
+	return nil
+}
+
+func (bh *BlockHeader) MarshalText() ([]byte, error) {
+	return nil, nil
+}
+
+func (bh *BlockHeader) UnmarshalText(buf []byte) error {
+	return nil
+}

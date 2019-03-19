@@ -1,6 +1,7 @@
 package leveldb
 
 import (
+	"github.com/clarenous/go-capsule/protocol/types"
 	dbm "github.com/tendermint/tmlibs/db"
 
 	"github.com/clarenous/go-capsule/database/storage"
@@ -18,12 +19,14 @@ func calcUtxoKey(hash *types.Hash) []byte {
 
 func getTransactionsUtxo(db dbm.DB, view *state.UtxoViewpoint, txs []*types.Tx) error {
 	for _, tx := range txs {
-		for _, prevout := range tx.SpentOutputIDs {
-			if view.HasUtxo(&prevout) {
+		for _, in := range tx.Inputs {
+			utxoHash := in.ValueSource.Hash()
+
+			if view.HasUtxo(utxoHash.Ptr()) {
 				continue
 			}
 
-			data := db.Get(calcUtxoKey(&prevout))
+			data := db.Get(calcUtxoKey(utxoHash.Ptr()))
 			if data == nil {
 				continue
 			}
@@ -33,7 +36,7 @@ func getTransactionsUtxo(db dbm.DB, view *state.UtxoViewpoint, txs []*types.Tx) 
 				return errors.Wrap(err, "unmarshaling utxo entry")
 			}
 
-			view.Entries[prevout] = &utxo
+			view.Entries[utxoHash] = &utxo
 		}
 	}
 
