@@ -1,6 +1,7 @@
 package protocol
 
 import (
+	ca "github.com/clarenous/go-capsule/consensus/algorithm"
 	"sync"
 
 	log "github.com/sirupsen/logrus"
@@ -100,13 +101,13 @@ func (c *Chain) InMainChain(hash types.Hash) bool {
 	return c.index.InMainchain(hash)
 }
 
-// CalcNextBits return the seed for the given block
-func (c *Chain) CalcNextBits(preBlock *types.Hash) (uint64, error) {
+// HintNextProof return the seed for the given block
+func (c *Chain) CalcNextProof(preBlock *types.Hash) (ca.Proof, error) {
 	node := c.index.GetNode(preBlock)
 	if node == nil {
-		return 0, errors.New("can't find preblock in the blockindex")
+		return nil, errors.New("can't find preblock in the blockindex")
 	}
-	return node.CalcNextBits(), nil
+	return node.HintNextProof()
 }
 
 // This function must be called with mu lock in above level

@@ -1,6 +1,7 @@
 package difficulty
 
 import (
+	"github.com/clarenous/go-capsule/consensus/algorithm/pow"
 	"math/big"
 
 	"github.com/clarenous/go-capsule/consensus"
@@ -127,13 +128,13 @@ func CheckProofOfWork(hash *types.Hash, bits uint64) bool {
 // mining progress.
 func CalcNextRequiredDifficulty(lastBH, compareBH *types.BlockHeader) uint64 {
 	if (lastBH.Height)%consensus.BlocksPerRetarget != 0 || lastBH.Height == 0 {
-		return lastBH.Proof.Target
+		return lastBH.Proof.(*pow.WorkProof).Target
 	}
 
 	targetTimeSpan := int64(consensus.BlocksPerRetarget * consensus.TargetSecondsPerBlock)
 	actualTimeSpan := int64(lastBH.Timestamp - compareBH.Timestamp)
 
-	oldTarget := CompactToBig(lastBH.Proof.Target)
+	oldTarget := CompactToBig(lastBH.Proof.(*pow.WorkProof).Target)
 	newTarget := new(big.Int).Mul(oldTarget, big.NewInt(actualTimeSpan))
 	newTarget.Div(newTarget, big.NewInt(targetTimeSpan))
 	newTargetBits := BigToCompact(newTarget)

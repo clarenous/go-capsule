@@ -18,14 +18,14 @@ const logModule = "leveldb"
 const BlockVersion = 1
 
 var (
-	errBadTimestamp          = errors.New("block timestamp is not in the valid range")
-	errBadBits               = errors.New("block bits is invalid")
+	errBadTimestamp = errors.New("block timestamp is not in the valid range")
+
 	errMismatchedBlock       = errors.New("mismatched block")
 	errMismatchedMerkleRoot  = errors.New("mismatched merkle root")
 	errMisorderedBlockHeight = errors.New("misordered block height")
 	errOverBlockLimit        = errors.New("block's gas is over the limit")
-	errWorkProof             = errors.New("invalid difficulty proof of work")
-	errVersionRegression     = errors.New("version regression")
+
+	errVersionRegression = errors.New("version regression")
 )
 
 func checkBlockTime(b *types.Block, parent *state.BlockNode) error {
@@ -49,15 +49,7 @@ func checkCoinbaseAmount(b *types.Block, amount uint64) error {
 }
 
 func ValidateProof(b *types.Block, parent *state.BlockNode) error {
-	return b.Proof.ValidateProof(nil)
-
-	if b.Proof.Target != parent.CalcNextBits() {
-		return errBadBits
-	}
-	if !difficulty.CheckProofOfWork(b.Hash().Ptr(), b.Proof.Nonce) {
-		return errWorkProof
-	}
-	return nil
+	return b.Proof.ValidateProof([]interface{}{b, parent})
 }
 
 // ValidateBlockHeader check the block's header
@@ -87,20 +79,16 @@ func ValidateBlock(b *types.Block, parent *state.BlockNode) error {
 		return err
 	}
 
-	blockGasSum := uint64(0)
 	coinbaseAmount := consensus.BlockSubsidy(b.BlockHeader.Height)
 
 	for i, tx := range b.Transactions {
 		// TODO:计算矿工收益
-		err := ValidateTx(tx, b)
-		if !gasStatus.GasValid {
+		fee, err := ValidateTx(tx, b)
+		if err != nil {
 			return errors.Wrapf(err, "validate of transaction %d of %d", i, len(b.Transactions))
 		}
 
-		coinbaseAmount += gasStatus.BTMValue
-		if blockGasSum += uint64(gasStatus.GasUsed); blockGasSum > consensus.MaxBlockGas {
-			return errOverBlockLimit
-		}
+		coinbaseAmount += fee
 	}
 
 	if err := checkCoinbaseAmount(b, coinbaseAmount); err != nil {
@@ -111,7 +99,7 @@ func ValidateBlock(b *types.Block, parent *state.BlockNode) error {
 	if err != nil {
 		return errors.Wrap(err, "computing transaction id merkle root")
 	}
-	if txMerkleRoot != *b.TransactionsRoot {
+	if txMerkleRoot != b.TransactionRoot {
 		return errors.WithDetailf(errMismatchedMerkleRoot, "transaction id merkle root")
 	}
 

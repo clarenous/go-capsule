@@ -111,7 +111,7 @@ func TestCalcNextBits(t *testing.T) {
 
 	for i, c := range cases {
 		c.currentNode.Parent = c.parentNode
-		bits := c.currentNode.CalcNextBits()
+		bits := c.currentNode.HintNextProof()
 		if bits != c.bits {
 			t.Fatalf("calc next bit failed, index: %d, expected: %d, have: %d", i, c.bits, bits)
 		}

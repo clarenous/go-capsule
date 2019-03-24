@@ -7,7 +7,7 @@ import (
 	"github.com/clarenous/go-capsule/crypto/sha3pool"
 	"github.com/clarenous/go-capsule/errors"
 	"github.com/clarenous/go-capsule/protocol/types"
-	"github.com/clarenous/go-capsule/protocol/txscript"
+	"github.com/clarenous/go-capsule/protocol/vm"
 )
 
 // NewTxVMContext generates the vm.Context for BVM

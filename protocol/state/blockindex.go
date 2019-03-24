@@ -84,17 +84,11 @@ func (node *BlockNode) CalcPastMedianTime() uint64 {
 	return timestamps[len(timestamps)/2]
 }
 
-// CalcNextBits calculate the bits for next block
-func (node *BlockNode) CalcNextBits() uint64 {
-	if node.Height%consensus.BlocksPerRetarget != 0 || node.Height == 0 {
-		return node.Target
-	}
-
-	compareNode := node.Parent
-	for compareNode.Height%consensus.BlocksPerRetarget != 0 {
-		compareNode = compareNode.Parent
-	}
-	return difficulty.CalcNextRequiredDifficulty(node.BlockHeader(), compareNode.BlockHeader())
+// HintNextProof calculate the bits for next block
+func (node *BlockNode) HintNextProof() (ca.Proof, error) {
+	proof := new(pow.WorkProof)
+	err := proof.HintNextProof([]interface{}{node})
+	return proof, err
 }
 
 // BlockIndex is the struct for help chain trace block chain as tree
