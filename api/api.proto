@@ -1,0 +1,20 @@
+syntax = "proto3";
+package api;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+
+service APIService {
+
+    rpc GetBestBlock (google.protobuf.Empty) returns (GetBestBlockResponse) {
+        option (google.api.http) = {
+            get: "/v1/blocks/best"
+        };
+    }
+
+}
+
+message GetBestBlockResponse {
+    uint64 height = 1;
+    string hash = 2;
+}
