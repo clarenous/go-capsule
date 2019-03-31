@@ -2,11 +2,11 @@ package types
 
 // Transaction
 type Tx struct {
-	Version  uint64
-	Inputs   []TxIn
-	Outputs  []TxOut
-	Evidence []Evidence
-	LockTime uint64
+	Version   uint64
+	Inputs    []TxIn
+	Outputs   []TxOut
+	Evidences []Evidence
+	LockTime  uint64
 }
 
 // TxIn

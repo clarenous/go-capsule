@@ -62,6 +62,6 @@ message Tx {
     uint64            version   = 1;
     repeated TxIn     inputs    = 2;
     repeated TxOut    outputs   = 3;
-    repeated Evidence evidence  = 4;
+    repeated Evidence evidences = 4;
     uint64            lock_time = 5;
 }
