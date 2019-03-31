@@ -15,13 +15,6 @@ func MustDecodeHash(s string) (h types.Hash) {
 	return h
 }
 
-func MustDecodeAsset(s string) (h types.AssetID) {
-	if err := h.UnmarshalText([]byte(s)); err != nil {
-		panic(err)
-	}
-	return h
-}
-
 func Serialize(t *testing.T, wt io.WriterTo) []byte {
 	var b bytes.Buffer
 	if _, err := wt.WriteTo(&b); err != nil {

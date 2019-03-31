@@ -102,16 +102,17 @@ func checkValidTxOut(vs *validationState, out *types.TxOut) error {
 	return nil
 }
 
-func checkStandardTx(tx *types.Tx) error {
+func checkStandardTx(tx *types.Tx) (uint64, error) {
+	var fee, inpAmount, outAmounta uint64
 	for _, in := range tx.Inputs {
 		if in.ValueSource.TxID.IsZero() {
-			return ErrEmptyInputIDs
+			return 0, ErrEmptyInputIDs
 		}
 	}
 
 	for _, out := range tx.Outputs {
 		if out.ScriptHash.IsZero() {
-			return ErrEmptyScriptHash
+			return 0, ErrEmptyScriptHash
 		}
 	}
 

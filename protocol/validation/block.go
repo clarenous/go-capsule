@@ -6,7 +6,6 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/clarenous/go-capsule/consensus"
-	"github.com/clarenous/go-capsule/consensus/algorithm/pow/difficulty"
 	"github.com/clarenous/go-capsule/errors"
 	"github.com/clarenous/go-capsule/protocol/types"
 
@@ -39,12 +38,20 @@ func checkBlockTime(b *types.Block, parent *state.BlockNode) error {
 	return nil
 }
 
+// TODO: check overflow! (19.03.24 gcy)
 func checkCoinbaseAmount(b *types.Block, amount uint64) error {
 	if len(b.Transactions) == 0 {
 		return errors.Wrap(ErrWrongCoinbaseTransaction, "block is empty")
 	}
 
-	tx := b.Transactions[0]
+	var totalOuts uint64
+	for _, out := range b.Transactions[0].Outputs {
+		totalOuts += out.Value
+	}
+
+	if totalOuts > amount {
+		return errors.Wrap(ErrWrongCoinbaseTransaction, "reward more than deserved")
+	}
 	return nil
 }
 
