@@ -10,8 +10,8 @@ import (
 
 func (a *API) GetBestBlock(ctx context.Context, in *empty.Empty) (*GetBestBlockResponse, error) {
 	resp := &GetBestBlockResponse{
-		Height: 2,
-		Hash:   "0x123dac",
+		Height: rand.Uint64() % 1000,
+		Hash:   types.MockHash().String(),
 	}
 	return resp, nil
 }
