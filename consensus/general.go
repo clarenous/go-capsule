@@ -7,14 +7,23 @@ import (
 
 //consensus variables
 const (
-	// Max gas that one block contains
-	MaxBlockGas      = uint64(10000000)
-	VMGasRate        = int64(200)
-	StorageGasRate   = int64(1)
-	MaxGasAmount     = int64(200000)
-	DefaultGasCredit = int64(30000)
+	// parameters for transactions
+	// MaxTxInSequenceNum is the maximum sequence number the sequence field
+	// of a transaction input can be.
+	MaxTxInSequenceNum uint32 = 0xffffffff
+	// SequenceLockTimeDisabled is a flag that if set on a transaction
+	// input's sequence number, the sequence number will not be interpreted
+	// as a relative locktime.
+	SequenceLockTimeDisabled = 1 << 31
+	// SequenceLockTimeIsSeconds is a flag that if set on a transaction
+	// input's sequence number, the relative locktime has units of 512
+	// seconds.
+	SequenceLockTimeIsSeconds = 1 << 22
+	// SequenceLockTimeMask is a mask that extracts the relative locktime
+	// when masked against the transaction input sequence number.
+	SequenceLockTimeMask = 0x0000ffff
 
-	//config parameter for coinbase reward
+	// config parameter for coinbase reward
 	CoinbasePendingBlockNumber = uint64(100)
 	subsidyReductionInterval   = uint64(840000)
 	baseSubsidy                = uint64(41250000000)
