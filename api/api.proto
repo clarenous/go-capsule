@@ -21,6 +21,16 @@ service APIService {
             get: "/v1/blocks/{id}/header"
         };
     }
+    rpc GetBlockVerboseV0 (GetBlockVerboseRequest) returns (GetBlockVerboseV0Response) {
+        option (google.api.http) = {
+            get: "/v1/blocks/{id}/verbose/0"
+        };
+    }
+    rpc GetBlockVerboseV1 (GetBlockVerboseRequest) returns (GetBlockVerboseV1Response) {
+        option (google.api.http) = {
+            get: "/v1/blocks/{id}/verbose/1"
+        };
+    }
 
 }
 
@@ -66,4 +76,68 @@ message GetBlockHeaderResponse {
     string transaction_root = 7;
     string witness_root     = 8;
     Proof  proof            = 9;
+}
+
+message GetBlockVerboseRequest {
+    string id      = 1;
+}
+
+message GetBlockVerboseV0Response {
+    message Transaction {
+        string          txid      = 1;
+        repeated string evidences = 2;
+    }
+    string               hash             = 1;
+    string               chain_id         = 2;
+    uint64               version          = 3;
+    uint64               height           = 4;
+    uint64               timestamp        = 5;
+    string               previous         = 6;
+    string               transaction_root = 7;
+    string               witness_root     = 8;
+    Proof                proof            = 9;
+    repeated Transaction transactions     = 10;
+}
+
+message GetBlockVerboseV1Response {
+    string      hash             = 1;
+    string      chain_id         = 2;
+    uint64      version          = 3;
+    uint64      height           = 4;
+    uint64      timestamp        = 5;
+    string      previous         = 6;
+    string      transaction_root = 7;
+    string      witness_root     = 8;
+    Proof       proof            = 9;
+    repeated Tx transactions     = 10;
+}
+
+message Tx {
+    message TxIn {
+        message ValueSource {
+            string    txid  = 1;
+            uint64    index = 2;
+        }
+        ValueSource value_source  = 1;
+        string      redeem_script = 2;
+        string      unlock_script = 3;
+        uint64      sequence      = 4;
+    }
+    message TxOut {
+        uint64 value       = 1;
+        string script_hash = 2;
+    }
+    string            txid      = 1;
+    uint64            version   = 2;
+    repeated TxIn     inputs    = 3;
+    repeated TxOut    outputs   = 4;
+    repeated Evidence evidences = 5;
+    uint64            lock_time = 6;
+}
+
+message Evidence {
+    string  evid         = 1;
+    string  digest       = 2;
+    string  source       = 3;
+    string  valid_script = 4;
 }

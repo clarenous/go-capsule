@@ -8,7 +8,7 @@ import (
 )
 
 func MockBlock() *Block {
-	var txsCount = rand.Intn(200)
+	var txsCount = rand.Intn(20)
 	txs := make([]*Tx, txsCount)
 	for i := range txs {
 		txs[i] = MockTx()
