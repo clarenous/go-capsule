@@ -128,6 +128,6 @@ func (h *Hash) IsZero() bool {
 	return *h == Hash{}
 }
 
-func (h *Hash) Ptr() *Hash {
-	return h
+func (h Hash) Ptr() *Hash {
+	return &h
 }

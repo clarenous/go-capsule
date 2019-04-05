@@ -13,4 +13,5 @@ proto: $(GO)
 	rm $(API_PB_GO).bak
 
 clean:
-	rm *.go
+	rm *.pb.go
+	rm *.pb.gw.go

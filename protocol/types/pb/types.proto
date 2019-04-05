@@ -35,7 +35,7 @@ message BlockHeader {
     Hash                previous         = 5;
     Hash                transaction_root = 6;
     Hash                witness_root     = 7;
-    google.protobuf.Any proof            = 8;
+//    google.protobuf.Any proof            = 8;
 }
 
 // Transaction

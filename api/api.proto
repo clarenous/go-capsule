@@ -11,10 +11,59 @@ service APIService {
             get: "/v1/blocks/best"
         };
     }
+    rpc GetBlock (GetBlockRequest) returns (GetBlockResponse) {
+        option (google.api.http) = {
+            get: "/v1/blocks/{id}"
+        };
+    }
+    rpc GetBlockHeader (GetBlockHeaderRequest) returns (GetBlockHeaderResponse) {
+        option (google.api.http) = {
+            get: "/v1/blocks/{id}/header"
+        };
+    }
 
 }
 
 message GetBestBlockResponse {
     uint64 height = 1;
     string hash = 2;
+}
+
+message Proof {
+    uint64 target = 1;
+    uint64 nonce  = 2;
+}
+
+message GetBlockRequest {
+    string id = 1;
+}
+
+message GetBlockResponse {
+    string          hash             = 1;
+    string          chain_id         = 2;
+    uint64          version          = 3;
+    uint64          height           = 4;
+    uint64          timestamp        = 5;
+    string          previous         = 6;
+    string          transaction_root = 7;
+    string          witness_root     = 8;
+    Proof           proof            = 9;
+    repeated string transactions     = 10;
+    repeated string evidences        = 11;
+}
+
+message GetBlockHeaderRequest {
+    string id = 1;
+}
+
+message GetBlockHeaderResponse {
+    string hash             = 1;
+    string chain_id         = 2;
+    uint64 version          = 3;
+    uint64 height           = 4;
+    uint64 timestamp        = 5;
+    string previous         = 6;
+    string transaction_root = 7;
+    string witness_root     = 8;
+    Proof  proof            = 9;
 }

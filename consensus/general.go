@@ -1,7 +1,7 @@
 package consensus
 
 import (
-	"github.com/clarenous/go-capsule/protocol/types"
+	"github.com/clarenous/go-capsule/protocol/types/pb"
 	"strings"
 )
 
@@ -64,7 +64,7 @@ func IsBech32SegwitPrefix(prefix string, params *Params) bool {
 // and also prevents forks from old blocks.
 type Checkpoint struct {
 	Height uint64
-	Hash   types.Hash
+	Hash   typespb.Hash
 }
 
 // Params store the config for different network
