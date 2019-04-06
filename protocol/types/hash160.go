@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/clarenous/go-capsule/crypto"
 	"github.com/clarenous/go-capsule/protocol/types/pb"
 	"io"
 )
@@ -18,9 +17,6 @@ const (
 )
 
 type Hash160 typespb.Hash160
-
-// EmptyHash160 represents a 160-bit hash.
-var EmptyHash160 = NewHash160(to20Byte(crypto.Ripemd160(nil)))
 
 func to20Byte(b []byte) [20]byte {
 	var b20 [20]byte
