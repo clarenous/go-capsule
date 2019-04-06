@@ -102,21 +102,18 @@ func checkValidTxOut(vs *validationState, out *types.TxOut) error {
 	return nil
 }
 
-func checkStandardTx(tx *types.Tx) (uint64, error) {
-	var fee, inpAmount, outAmounta uint64
+func checkStandardTx(tx *types.Tx) error {
 	for _, in := range tx.Inputs {
 		if in.ValueSource.TxID.IsZero() {
-			return 0, ErrEmptyInputIDs
+			return ErrEmptyInputIDs
 		}
 	}
 
 	for _, out := range tx.Outputs {
 		if out.ScriptHash.IsZero() {
-			return 0, ErrEmptyScriptHash
+			return ErrEmptyScriptHash
 		}
 	}
-
-	// TODO: 检查 入金 与 出金 的大小关系
 	return nil
 }
 
@@ -132,15 +129,16 @@ func checkLockTime(tx *types.Tx, block *types.Block) error {
 }
 
 // ValidateTx validates a transaction.
-func ValidateTx(tx *types.Tx, block *types.Block) (uint64, error) {
+func ValidateTx(tx *types.Tx, block *types.Block) error {
+	var err error
 	if tx.SerializedSize() == 0 {
-		return 0, ErrWrongTransactionSize
+		return ErrWrongTransactionSize
 	}
-	if err := checkLockTime(tx, block); err != nil {
-		return 0, err
+	if err = checkLockTime(tx, block); err != nil {
+		return err
 	}
-	if err := checkStandardTx(tx); err != nil {
-		return 0, err
+	if err = checkStandardTx(tx); err != nil {
+		return err
 	}
 
 	vs := &validationState{
@@ -149,5 +147,5 @@ func ValidateTx(tx *types.Tx, block *types.Block) (uint64, error) {
 		entryID: tx.Hash(),
 		cache:   make(map[types.Hash]error),
 	}
-	return 0, checkValidTx(vs, tx)
+	return checkValidTx(vs, tx)
 }

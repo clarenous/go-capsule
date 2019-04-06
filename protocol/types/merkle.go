@@ -297,6 +297,14 @@ func TxMerkleRoot(transactions []*Tx) (root Hash, err error) {
 	return merkleRoot(nodes)
 }
 
+func TxWitnessRoot(transactions []*Tx) (root Hash, err error) {
+	nodes := []merkleNode{}
+	for _, tx := range transactions {
+		nodes = append(nodes, tx.Hash().Ptr())
+	}
+	return merkleRoot(nodes)
+}
+
 // prevPowerOfTwo returns the largest power of two that is smaller than a given number.
 // In other words, for some input n, the prevPowerOfTwo k is a power of two such that
 // k < n <= 2k. This is a helper function used during the calculation of a merkle tree.

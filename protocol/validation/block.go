@@ -39,7 +39,7 @@ func checkBlockTime(b *types.Block, parent *state.BlockNode) error {
 }
 
 // TODO: check overflow! (19.03.24 gcy)
-func checkCoinbaseAmount(b *types.Block, amount uint64) error {
+func CheckCoinbaseAmount(b *types.Block, amount uint64) error {
 	if len(b.Transactions) == 0 {
 		return errors.Wrap(ErrWrongCoinbaseTransaction, "block is empty")
 	}
@@ -86,20 +86,10 @@ func ValidateBlock(b *types.Block, parent *state.BlockNode) error {
 		return err
 	}
 
-	coinbaseAmount := consensus.BlockSubsidy(b.BlockHeader.Height)
-
 	for i, tx := range b.Transactions {
-		// TODO:计算矿工收益
-		fee, err := ValidateTx(tx, b)
-		if err != nil {
+		if err := ValidateTx(tx, b); err != nil {
 			return errors.Wrapf(err, "validate of transaction %d of %d", i, len(b.Transactions))
 		}
-
-		coinbaseAmount += fee
-	}
-
-	if err := checkCoinbaseAmount(b, coinbaseAmount); err != nil {
-		return err
 	}
 
 	txMerkleRoot, err := types.TxMerkleRoot(b.Transactions)
@@ -107,6 +97,14 @@ func ValidateBlock(b *types.Block, parent *state.BlockNode) error {
 		return errors.Wrap(err, "computing transaction id merkle root")
 	}
 	if txMerkleRoot != b.TransactionRoot {
+		return errors.WithDetailf(errMismatchedMerkleRoot, "transaction id merkle root")
+	}
+
+	txWitnessRoot, err := types.TxWitnessRoot(b.Transactions)
+	if err != nil {
+		return errors.Wrap(err, "computing transaction id merkle root")
+	}
+	if txWitnessRoot != b.WitnessRoot {
 		return errors.WithDetailf(errMismatchedMerkleRoot, "transaction id merkle root")
 	}
 

@@ -32,7 +32,7 @@ func (c *Chain) ValidateTx(tx *types.Tx) (bool, error) {
 	}
 
 	bh := c.BestBlockHeader()
-	_, err := validation.ValidateTx(tx, &types.Block{BlockHeader: *bh})
+	err := validation.ValidateTx(tx, &types.Block{BlockHeader: *bh})
 
 	if err != nil {
 		log.WithFields(log.Fields{"module": logModule, "tx_id": tx.Hash().String(), "error": err}).Info("transaction status fail")
