@@ -2,10 +2,10 @@ package state
 
 import (
 	"errors"
-
 	"github.com/clarenous/go-capsule/consensus"
 	"github.com/clarenous/go-capsule/database/storage"
 	"github.com/clarenous/go-capsule/protocol/types"
+	"github.com/clarenous/go-capsule/protocol/validation"
 )
 
 // UtxoViewpoint represents a view into the set of unspent transaction outputs
@@ -46,11 +46,29 @@ func (view *UtxoViewpoint) ApplyTransaction(block *types.Block, tx *types.Tx) er
 }
 
 func (view *UtxoViewpoint) ApplyBlock(block *types.Block) error {
+	// Check coinbase value
+	var fee uint64
+	for _, tx := range block.Transactions {
+		for _, in := range tx.Inputs {
+			entry, ok := view.Entries[in.ValueSource.Hash()]
+			if !ok {
+				return errors.New("fail to find utxo entry")
+			}
+			fee += entry.Value
+		}
+	}
+	coinbaseAmount := consensus.BlockSubsidy(block.Height)
+	if err := validation.CheckCoinbaseAmount(block, coinbaseAmount+fee); err != nil {
+		return err
+	}
+
+	// Check Inputs
 	for _, tx := range block.Transactions {
 		if err := view.ApplyTransaction(block, tx); err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 

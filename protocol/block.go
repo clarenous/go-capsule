@@ -1,7 +1,6 @@
 package protocol
 
 import (
-	"github.com/clarenous/go-capsule/consensus"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/clarenous/go-capsule/errors"
@@ -79,7 +78,6 @@ func (c *Chain) connectBlock(block *types.Block) (err error) {
 	if err := c.store.GetTransactionsUtxo(utxoView, block.Transactions); err != nil {
 		return err
 	}
-	coinbaseAmount := consensus.BlockSubsidy(block.Height)
 	if err := utxoView.ApplyBlock(block); err != nil {
 		return err
 	}
