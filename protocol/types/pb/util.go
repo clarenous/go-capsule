@@ -43,6 +43,18 @@ func WriteElement(w io.Writer, element interface{}) error {
 		}
 		return WriteElement(w, v.Elem().Interface())
 
+	case reflect.Slice:
+		for i := 0; i < v.Len(); i++ {
+			c := v.Index(i)
+			if !c.CanInterface() {
+				return errInvalidValue
+			}
+			if err := WriteElement(w, c.Interface()); err != nil {
+				return fmt.Errorf("%v, writing slice element %d for hash", err, i)
+			}
+		}
+		return nil
+
 	case reflect.Struct:
 		typ := v.Type()
 		for i := 0; i < typ.NumField(); i++ {

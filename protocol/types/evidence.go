@@ -24,7 +24,8 @@ func (evid *Evidence) Hash(txid Hash, index uint64) (hash Hash) {
 	buf.Write(evid.ValidScript)
 
 	h := sha3.New256()
-	b := h.Sum(buf.Bytes())
+	h.Write(buf.Bytes())
+	b := h.Sum(nil)
 	r := bytes.NewReader(b)
 
 	hash.ReadFrom(r)

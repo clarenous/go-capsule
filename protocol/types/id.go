@@ -21,7 +21,8 @@ func GetID(e Entry) (hash Hash) {
 	}
 
 	h := sha3.New256()
-	b := h.Sum(e.bytesForID())
+	h.Write(e.bytesForID())
+	b := h.Sum(nil)
 	r := bytes.NewReader(b)
 
 	hash.ReadFrom(r)

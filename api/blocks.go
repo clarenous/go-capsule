@@ -31,12 +31,14 @@ func (a *API) GetBlock(ctx context.Context, in *GetBlockRequest) (*GetBlockRespo
 
 	constructBlockHeaderResp(resp, &block.BlockHeader)
 
-	for i := range resp.Transactions {
-		resp.Transactions[i] = types.MockHash().String()
-	}
-
-	for i := range resp.Evidences {
-		resp.Evidences[i] = types.MockHash().String()
+	var evidIndex int
+	for i, tx := range block.Transactions {
+		txid := tx.Hash()
+		resp.Transactions[i] = txid.String()
+		for j, evid := range tx.Evidences {
+			resp.Evidences[evidIndex] = evid.Hash(txid, uint64(j)).String()
+			evidIndex++
+		}
 	}
 
 	return resp, nil
@@ -64,12 +66,13 @@ func (a *API) GetBlockVerboseV0(ctx context.Context, in *GetBlockVerboseRequest)
 
 	constructBlockHeaderResp(resp, &block.BlockHeader)
 	for i, tx := range block.Transactions {
+		txid := tx.Hash()
 		resp.Transactions[i] = &GetBlockVerboseV0Response_Transaction{
-			Txid:      types.MockHash().String(),
+			Txid:      txid.String(),
 			Evidences: make([]string, len(tx.Evidences)),
 		}
-		for j := range tx.Evidences {
-			resp.Transactions[i].Evidences[j] = types.MockHash().String()
+		for j, evid := range tx.Evidences {
+			resp.Transactions[i].Evidences[j] = evid.Hash(txid, uint64(j)).String()
 		}
 	}
 
@@ -149,7 +152,9 @@ func constructBlockHeaderResp(resp interface{}, header *types.BlockHeader) {
 }
 
 func constructTxResp(resp *Tx, tx *types.Tx) {
-	resp.Txid = types.MockHash().String()
+	txid := tx.Hash()
+
+	resp.Txid = txid.String()
 	resp.Version = tx.Version
 	resp.Inputs = make([]*Tx_TxIn, len(tx.Inputs))
 	resp.Outputs = make([]*Tx_TxOut, len(tx.Outputs))
@@ -177,13 +182,13 @@ func constructTxResp(resp *Tx, tx *types.Tx) {
 
 	for i, evid := range tx.Evidences {
 		evidResp := new(Evidence)
-		constructEvidenceResp(evidResp, &evid)
+		constructEvidenceResp(evidResp, &evid, txid, uint64(i))
 		resp.Evidences[i] = evidResp
 	}
 }
 
-func constructEvidenceResp(resp *Evidence, evid *types.Evidence) {
-	resp.Evid = types.MockHash().String()
+func constructEvidenceResp(resp *Evidence, evid *types.Evidence, txid types.Hash, index uint64) {
+	resp.Evid = evid.Hash(txid, index).String()
 	resp.Digest = hex.EncodeToString(evid.Digest)
 	resp.Source = hex.EncodeToString(evid.Source)
 	resp.ValidScript = hex.EncodeToString(evid.ValidScript)
