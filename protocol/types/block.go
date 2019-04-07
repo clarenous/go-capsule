@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"encoding/binary"
 	ca "github.com/clarenous/go-capsule/consensus/algorithm"
 	"github.com/clarenous/go-capsule/protocol/types/pb"
 	"github.com/golang/protobuf/proto"
@@ -130,4 +131,130 @@ func (blk *Block) UnmarshalText(buf []byte) error {
 		return err
 	}
 	return blk.FromProto(pb)
+}
+
+func (blk *Block) MarshalTextForStore() ([]byte, []*TxLoc, error) {
+	var blockHash = blk.Hash()
+	var buf bytes.Buffer
+	var b8 [8]byte
+	var pos int
+	var writeLength = func(length int) {
+		binary.LittleEndian.PutUint64(b8[:], uint64(length))
+		buf.Write(b8[:])
+	}
+
+	pb, err := blk.ToProto()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Write blockHeader
+	bhBytes, err := proto.Marshal(pb.BlockHeader)
+	if err != nil {
+		return nil, nil, err
+	}
+	writeLength(len(bhBytes))
+	buf.Write(bhBytes)
+	pos += 8 + len(bhBytes)
+
+	// Write tx count
+	writeLength(len(blk.Transactions))
+	pos += 8
+
+	// Write txs
+	txLocs := make([]*TxLoc, len(pb.Transactions))
+	for i, tx := range pb.Transactions {
+		txbytes, err := proto.Marshal(tx)
+		txLen := len(txbytes)
+		if err != nil {
+			return nil, nil, err
+		}
+		txLocs[i] = &TxLoc{
+			TxHash:    blk.Transactions[i].Hash(),
+			BlockHash: blockHash,
+			Offset:    uint64(pos + 8),
+			Length:    uint64(txLen),
+		}
+		writeLength(txLen)
+		buf.Write(txbytes)
+		pos += 8 + txLen
+	}
+
+	return buf.Bytes(), txLocs, nil
+}
+
+func (blk *Block) UnmarshalTextForStore(buf []byte) error {
+	var r = bytes.NewReader(buf)
+	var b8 [8]byte
+	var readLength = func() int {
+		r.Read(b8[:])
+		return int(binary.LittleEndian.Uint64(b8[:]))
+	}
+
+	// Read blockHeader
+	bhPb, header, bhBytes := new(typespb.BlockHeader), new(BlockHeader), make([]byte, readLength())
+	if err := proto.Unmarshal(bhBytes, bhPb); err != nil {
+		return err
+	}
+	if err := header.FromProto(bhPb); err != nil {
+		return err
+	}
+	blk.BlockHeader = *header
+
+	// Read tx count
+	var txCount = readLength()
+
+	// Read txs
+	blk.Transactions = make([]*Tx, txCount)
+	for i := 0; i < txCount; i++ {
+		txPb, tx, txBytes := new(typespb.Tx), new(Tx), make([]byte, readLength())
+		if err := proto.Unmarshal(txBytes, txPb); err != nil {
+			return err
+		}
+		if err := tx.FromProto(txPb); err != nil {
+			return err
+		}
+		blk.Transactions[i] = tx
+	}
+
+	return nil
+}
+
+type TxLoc struct {
+	TxHash    Hash
+	BlockHash Hash
+	Offset    uint64
+	Length    uint64
+}
+
+func (tl *TxLoc) Byte80() [80]byte {
+	var b80 [80]byte
+	var b8 [8]byte
+
+	copy(b80[:], tl.TxHash[:])
+	copy(b80[32:], tl.BlockHash[:])
+
+	binary.LittleEndian.PutUint64(b8[:], tl.Offset)
+	copy(b80[64:], b8[:])
+	binary.LittleEndian.PutUint64(b8[:], tl.Length)
+	copy(b80[72:], b8[:])
+
+	return b80
+}
+
+func NewTxLocFromBytes(buf []byte) *TxLoc {
+	var b80 [80]byte
+	var txHash, blockHash Hash
+
+	copy(b80[:], buf[:])
+	copy(txHash[:], b80[:32])
+	copy(blockHash[:], b80[32:64])
+
+	loc := &TxLoc{
+		TxHash:    txHash,
+		BlockHash: blockHash,
+		Offset:    binary.LittleEndian.Uint64(b80[64:72]),
+		Length:    binary.LittleEndian.Uint64(b80[72:80]),
+	}
+	return loc
 }

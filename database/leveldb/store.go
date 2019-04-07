@@ -65,7 +65,7 @@ func GetBlock(db dbm.DB, hash *types.Hash) *types.Block {
 	}
 
 	block := &types.Block{}
-	block.UnmarshalText(bytez)
+	block.UnmarshalTextForStore(bytez)
 	return block
 }
 
@@ -152,7 +152,7 @@ func (s *Store) LoadBlockIndex(stateBestHeight uint64) (*state.BlockIndex, error
 // SaveBlock persists a new block in the protocol.
 func (s *Store) SaveBlock(block *types.Block) error {
 	startTime := time.Now()
-	binaryBlock, err := block.MarshalText()
+	binaryBlock, txLocs, err := block.MarshalTextForStore()
 	if err != nil {
 		return errors.Wrap(err, "Marshal block meta")
 	}
@@ -166,6 +166,8 @@ func (s *Store) SaveBlock(block *types.Block) error {
 	batch := s.db.NewBatch()
 	batch.Set(calcBlockKey(&blockHash), binaryBlock)
 	batch.Set(calcBlockHeaderKey(block.Height, &blockHash), binaryBlockHeader)
+	s.saveTxLocs(batch, txLocs)
+	s.saveEvidLocs(batch, block)
 	batch.Write()
 
 	log.WithFields(log.Fields{

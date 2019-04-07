@@ -83,6 +83,22 @@ func (tx *Tx) SerializedSize() uint64 {
 	return uint64(len(buf))
 }
 
+func (tx *Tx) MarshalText() ([]byte, error) {
+	pb, err := tx.ToProto()
+	if err != nil {
+		return nil, err
+	}
+	return proto.Marshal(pb)
+}
+
+func (tx *Tx) UnmarshalText(buf []byte) error {
+	pb := new(typespb.Tx)
+	if err := proto.Unmarshal(buf, pb); err != nil {
+		return err
+	}
+	return tx.FromProto(pb)
+}
+
 func (tx *Tx) ToProto() (*typespb.Tx, error) {
 	pb := &typespb.Tx{
 		Version:   tx.Version,
