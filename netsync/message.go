@@ -81,7 +81,7 @@ type GetBlockMessage struct {
 
 //GetHash reutrn the hash of the request
 func (m *GetBlockMessage) GetHash() *types.Hash {
-	hash := types.NewHash(m.RawHash)
+	hash := types.Hash(m.RawHash)
 	return &hash
 }
 
@@ -136,10 +136,10 @@ type GetHeadersMessage struct {
 //NewGetHeadersMessage return a new GetHeadersMessage
 func NewGetHeadersMessage(blockLocator []*types.Hash, stopHash *types.Hash) *GetHeadersMessage {
 	msg := &GetHeadersMessage{
-		RawStopHash: stopHash.Byte32(),
+		RawStopHash: stopHash.Value(),
 	}
 	for _, hash := range blockLocator {
-		msg.RawBlockLocator = append(msg.RawBlockLocator, hash.Byte32())
+		msg.RawBlockLocator = append(msg.RawBlockLocator, hash.Value())
 	}
 	return msg
 }
@@ -148,7 +148,7 @@ func NewGetHeadersMessage(blockLocator []*types.Hash, stopHash *types.Hash) *Get
 func (m *GetHeadersMessage) GetBlockLocator() []*types.Hash {
 	blockLocator := []*types.Hash{}
 	for _, rawHash := range m.RawBlockLocator {
-		hash := types.NewHash(rawHash)
+		hash := types.Hash(rawHash)
 		blockLocator = append(blockLocator, &hash)
 	}
 	return blockLocator
@@ -160,7 +160,7 @@ func (m *GetHeadersMessage) String() string {
 
 //GetStopHash return the stop hash of the msg
 func (m *GetHeadersMessage) GetStopHash() *types.Hash {
-	hash := types.NewHash(m.RawStopHash)
+	hash := types.Hash(m.RawStopHash)
 	return &hash
 }
 
@@ -210,10 +210,10 @@ type GetBlocksMessage struct {
 //NewGetBlocksMessage create a new GetBlocksMessage
 func NewGetBlocksMessage(blockLocator []*types.Hash, stopHash *types.Hash) *GetBlocksMessage {
 	msg := &GetBlocksMessage{
-		RawStopHash: stopHash.Byte32(),
+		RawStopHash: stopHash.Value(),
 	}
 	for _, hash := range blockLocator {
-		msg.RawBlockLocator = append(msg.RawBlockLocator, hash.Byte32())
+		msg.RawBlockLocator = append(msg.RawBlockLocator, hash.Value())
 	}
 	return msg
 }
@@ -222,7 +222,7 @@ func NewGetBlocksMessage(blockLocator []*types.Hash, stopHash *types.Hash) *GetB
 func (m *GetBlocksMessage) GetBlockLocator() []*types.Hash {
 	blockLocator := []*types.Hash{}
 	for _, rawHash := range m.RawBlockLocator {
-		hash := types.NewHash(rawHash)
+		hash := types.Hash(rawHash)
 		blockLocator = append(blockLocator, &hash)
 	}
 	return blockLocator
@@ -230,7 +230,7 @@ func (m *GetBlocksMessage) GetBlockLocator() []*types.Hash {
 
 //GetStopHash return the stop hash of the msg
 func (m *GetBlocksMessage) GetStopHash() *types.Hash {
-	hash := types.NewHash(m.RawStopHash)
+	hash := types.Hash(m.RawStopHash)
 	return &hash
 }
 
@@ -293,20 +293,20 @@ type StatusResponseMessage struct {
 func NewStatusResponseMessage(blockHeader *types.BlockHeader, hash *types.Hash) *StatusResponseMessage {
 	return &StatusResponseMessage{
 		Height:      blockHeader.Height,
-		RawHash:     blockHeader.Hash().Byte32(),
-		GenesisHash: hash.Byte32(),
+		RawHash:     blockHeader.Hash(),
+		GenesisHash: hash.Value(),
 	}
 }
 
 //GetHash get hash from msg
 func (m *StatusResponseMessage) GetHash() *types.Hash {
-	hash := types.NewHash(m.RawHash)
+	hash := types.Hash(m.RawHash)
 	return &hash
 }
 
 //GetGenesisHash get hash from msg
 func (m *StatusResponseMessage) GetGenesisHash() *types.Hash {
-	hash := types.NewHash(m.GenesisHash)
+	hash := types.Hash(m.GenesisHash)
 	return &hash
 }
 
@@ -321,7 +321,7 @@ type TransactionMessage struct {
 
 //NewTransactionMessage construct notify new tx msg
 func NewTransactionMessage(tx *types.Tx) (*TransactionMessage, error) {
-	rawTx, err := tx.TxData.MarshalText()
+	rawTx, err := tx.MarshalText()
 	if err != nil {
 		return nil, err
 	}
@@ -342,7 +342,7 @@ func (m *TransactionMessage) String() string {
 	if err != nil {
 		return "{err: wrong message}"
 	}
-	return fmt.Sprintf("{tx_size: %d, tx_hash: %s}", len(m.RawTx), tx.ID.String())
+	return fmt.Sprintf("{tx_size: %d, tx_hash: %s}", len(m.RawTx), tx.Hash().String())
 }
 
 //MineBlockMessage new mined block msg
