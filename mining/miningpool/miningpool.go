@@ -2,6 +2,7 @@ package miningpool
 
 import (
 	"errors"
+	"github.com/clarenous/go-capsule/event"
 	"sync"
 
 	log "github.com/sirupsen/logrus"
@@ -26,18 +27,18 @@ type MiningPool struct {
 	block    *types.Block
 	submitCh chan *submitBlockMsg
 
-	chain      *protocol.Chain
-	txPool     *protocol.TxPool
-	newBlockCh chan *types.Hash
+	chain           *protocol.Chain
+	txPool          *protocol.TxPool
+	eventDispatcher *event.Dispatcher
 }
 
 // NewMiningPool will create a new MiningPool
-func NewMiningPool(c *protocol.Chain, txPool *protocol.TxPool, newBlockCh chan *types.Hash) *MiningPool {
+func NewMiningPool(c *protocol.Chain, txPool *protocol.TxPool, dispatcher *event.Dispatcher) *MiningPool {
 	m := &MiningPool{
-		submitCh:   make(chan *submitBlockMsg, maxSubmitChSize),
-		chain:      c,
-		txPool:     txPool,
-		newBlockCh: newBlockCh,
+		submitCh:        make(chan *submitBlockMsg, maxSubmitChSize),
+		chain:           c,
+		txPool:          txPool,
+		eventDispatcher: dispatcher,
 	}
 	m.generateBlock()
 	go m.blockUpdater()
@@ -114,7 +115,9 @@ func (m *MiningPool) submitWork(bh *types.BlockHeader) error {
 		return errors.New("submit result is orphan")
 	}
 
-	blockHash := bh.Hash()
-	m.newBlockCh <- &blockHash
+	if err := m.eventDispatcher.Post(event.NewMinedBlockEvent{Block: m.block}); err != nil {
+		return err
+	}
+
 	return nil
 }
