@@ -38,23 +38,6 @@ func checkBlockTime(b *types.Block, parent *state.BlockNode) error {
 	return nil
 }
 
-// TODO: check overflow! (19.03.24 gcy)
-func CheckCoinbaseAmount(b *types.Block, amount uint64) error {
-	if len(b.Transactions) == 0 {
-		return errors.Wrap(ErrWrongCoinbaseTransaction, "block is empty")
-	}
-
-	var totalOuts uint64
-	for _, out := range b.Transactions[0].Outputs {
-		totalOuts += out.Value
-	}
-
-	if totalOuts > amount {
-		return errors.Wrap(ErrWrongCoinbaseTransaction, "reward more than deserved")
-	}
-	return nil
-}
-
 func ValidateProof(b *types.Block, parent *state.BlockNode) error {
 	return b.Proof.ValidateProof([]interface{}{b, parent})
 }

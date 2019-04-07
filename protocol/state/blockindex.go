@@ -3,14 +3,12 @@ package state
 import (
 	"errors"
 	ca "github.com/clarenous/go-capsule/consensus/algorithm"
-	"github.com/clarenous/go-capsule/consensus/algorithm/pow"
 	"math/big"
 	"sort"
 	"sync"
 
 	"github.com/clarenous/go-capsule/common"
 	"github.com/clarenous/go-capsule/consensus"
-	"github.com/clarenous/go-capsule/consensus/algorithm/pow/difficulty"
 	"github.com/clarenous/go-capsule/protocol/types"
 )
 
@@ -41,7 +39,7 @@ func NewBlockNode(bh *types.BlockHeader, parent *BlockNode) (*BlockNode, error) 
 	node := &BlockNode{
 		Parent:          parent,
 		Hash:            bh.Hash(),
-		WorkSum:         difficulty.CalcWork(bh.Proof.(*pow.WorkProof).Target),
+		WorkSum:         bh.Proof.CalcWeight(),
 		Version:         bh.Version,
 		Height:          bh.Height,
 		Timestamp:       bh.Timestamp,
@@ -86,7 +84,7 @@ func (node *BlockNode) CalcPastMedianTime() uint64 {
 
 // HintNextProof calculate the bits for next block
 func (node *BlockNode) HintNextProof() (ca.Proof, error) {
-	proof := new(pow.WorkProof)
+	proof, _ := ca.NewProof(consensus.ProofType)
 	err := proof.HintNextProof([]interface{}{node})
 	return proof, err
 }

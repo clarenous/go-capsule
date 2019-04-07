@@ -41,6 +41,8 @@ const (
 	PayToWitnessPubKeyHashDataSize = 20
 	PayToWitnessScriptHashDataSize = 32
 	CoinbaseArbitrarySizeLimit     = 128
+
+	ProofType = "pow"
 )
 
 // BlockSubsidy calculate the coinbase rewards on given block height

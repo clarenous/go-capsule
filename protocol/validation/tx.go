@@ -12,7 +12,6 @@ var (
 	ErrBadLockTime               = errors.New("invalid transaction lock time")
 	ErrEmptyInputIDs             = errors.New("got the empty InputIDs")
 	ErrNotStandardTx             = errors.New("not standard transaction")
-	ErrWrongCoinbaseTransaction  = errors.New("wrong coinbase transaction")
 	ErrWrongCoinbaseAsset        = errors.New("wrong coinbase assetID")
 	ErrCoinbaseArbitraryOversize = errors.New("coinbase arbitrary size is larger than limit")
 	ErrEmptyScriptHash           = errors.New("transaction has output with empty script hash")

@@ -62,7 +62,10 @@ func (bh *BlockHeader) FromProto(pb *typespb.BlockHeader) error {
 	bh.TransactionRoot = NewHashFromProto(pb.TransactionRoot).Value()
 	bh.WitnessRoot = NewHashFromProto(pb.WitnessRoot).Value()
 
-	proof := ca.NewProof("pow")
+	proof, err := ca.NewProof("pow")
+	if err != nil {
+		return err
+	}
 	if err := proof.FromBytes(pb.Proof); err != nil {
 		return err
 	}

@@ -1,4 +1,4 @@
-package difficulty
+package pow
 
 import (
 	"math/big"

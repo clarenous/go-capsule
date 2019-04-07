@@ -1,37 +1,46 @@
 package algorithm
 
+import (
+	"errors"
+	"math/big"
+)
+
 type Proof interface {
-	//FromProto(proto.Message) error
-	//ToProto() (proto.Message, error)
 	Bytes() []byte
 	FromBytes([]byte) error
 	HintNextProof(args []interface{}) error
 	ValidateProof(args []interface{}) error
+	CalcWeight() *big.Int
 }
 
-func NewProof(typ string) Proof {
-	return &fakeProof{
-		buf: []byte(typ),
+var (
+	ErrInvalidCAType = errors.New("invalid consensus algorithm type")
+	ErrInvalidCAArgs = errors.New("invalid consensus algorithm args")
+)
+
+var (
+	CABackendList []CABackend
+)
+
+type CABackend struct {
+	Typ      string
+	NewProof func(args ...interface{}) (Proof, error)
+}
+
+func AddDBBackend(ins CABackend) {
+	for _, dbb := range CABackendList {
+		if dbb.Typ == ins.Typ {
+			return
+		}
 	}
+	CABackendList = append(CABackendList, ins)
 }
 
-type fakeProof struct {
-	buf []byte
-}
-
-func (fp *fakeProof) Bytes() []byte {
-	return append([]byte{}, fp.buf...)
-}
-
-func (fp *fakeProof) FromBytes(bs []byte) error {
-	fp.buf = bs
-	return nil
-}
-
-func (fp *fakeProof) HintNextProof(args []interface{}) error {
-	return nil
-}
-
-func (fp *fakeProof) ValidateProof(args []interface{}) error {
-	return nil
+func NewProof(dbType string, args ...interface{}) (Proof, error) {
+	for _, cab := range CABackendList {
+		if cab.Typ == dbType {
+			return cab.NewProof(args...)
+		}
+	}
+	return nil, ErrInvalidCAType
 }

@@ -1,6 +1,7 @@
 package api
 
 import (
+	_ "github.com/clarenous/go-capsule/consensus/algorithm/pow"
 	"testing"
 	"time"
 )

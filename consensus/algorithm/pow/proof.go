@@ -1,27 +1,42 @@
 package pow
 
 import (
+	"encoding/binary"
 	"errors"
 	"github.com/clarenous/go-capsule/consensus"
-	"github.com/clarenous/go-capsule/consensus/algorithm/pow/difficulty"
+	ca "github.com/clarenous/go-capsule/consensus/algorithm"
 	"github.com/clarenous/go-capsule/protocol/state"
 	"github.com/clarenous/go-capsule/protocol/types"
-	"github.com/golang/protobuf/proto"
+	"math/big"
+)
+
+const (
+	TypePoW     = "pow"
+	ProofLength = 16
 )
 
 type WorkProof Proof
 
 var (
-	errBadBits   = errors.New("block bits is invalid")
-	errWorkProof = errors.New("invalid difficulty proof of work")
+	ErrBadBits      = errors.New("block bits is invalid")
+	ErrBadWork      = errors.New("invalid difficulty proof of work")
+	ErrInvalidBytes = errors.New("invalid bytes to deserialize work proof")
 )
 
-func (wp *WorkProof) FromProto(pb *proto.Message) error {
-	return nil
+func (wp *WorkProof) Bytes() []byte {
+	var b16 [ProofLength]byte
+	binary.LittleEndian.PutUint64(b16[:8], wp.Target)
+	binary.LittleEndian.PutUint64(b16[8:ProofLength], wp.Nonce)
+	return b16[:]
 }
 
-func (wp *WorkProof) ToProto() (*proto.Message, error) {
-	return nil, nil
+func (wp *WorkProof) FromBytes(buf []byte) error {
+	if len(buf) != ProofLength {
+		return ErrInvalidBytes
+	}
+	wp.Target = binary.LittleEndian.Uint64(buf[:8])
+	wp.Nonce = binary.LittleEndian.Uint64(buf[8:])
+	return nil
 }
 
 func (wp *WorkProof) HintNextProof(args []interface{}) error {
@@ -43,7 +58,7 @@ func (wp *WorkProof) HintNextProof(args []interface{}) error {
 	for compareNode.Height%consensus.BlocksPerRetarget != 0 {
 		compareNode = compareNode.Parent
 	}
-	wp.Target = difficulty.CalcNextRequiredDifficulty(node.BlockHeader(), compareNode.BlockHeader())
+	wp.Target = CalcNextRequiredDifficulty(node.BlockHeader(), compareNode.BlockHeader())
 	return nil
 }
 
@@ -65,8 +80,23 @@ func (wp *WorkProof) ValidateProof(args []interface{}) error {
 		return errors.New(" validate proof target not equal")
 	}
 
-	if !difficulty.CheckProofOfWork(b.Hash().Ptr(), b.Proof.(*WorkProof).Nonce) {
-		return errWorkProof
+	if !CheckProofOfWork(b.Hash().Ptr(), b.Proof.(*WorkProof).Nonce) {
+		return ErrBadWork
 	}
 	return nil
+}
+
+func (wp *WorkProof) CalcWeight() *big.Int {
+	return CalcWork(wp.Target)
+}
+
+func NewProof(args ...interface{}) (ca.Proof, error) {
+	return &WorkProof{}, nil
+}
+
+func init() {
+	ca.AddDBBackend(ca.CABackend{
+		Typ:      TypePoW,
+		NewProof: NewProof,
+	})
 }

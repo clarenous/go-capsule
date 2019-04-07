@@ -35,7 +35,8 @@ func MockBlockHeader() *BlockHeader {
 }
 
 func MockProof() ca.Proof {
-	return ca.NewProof("pow")
+	proof, _ := ca.NewProof("pow")
+	return proof
 }
 
 func MockTx() *Tx {

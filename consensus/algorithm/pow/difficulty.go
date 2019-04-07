@@ -1,7 +1,6 @@
-package difficulty
+package pow
 
 import (
-	"github.com/clarenous/go-capsule/consensus/algorithm/pow"
 	"math/big"
 
 	"github.com/clarenous/go-capsule/consensus"
@@ -23,7 +22,7 @@ var (
 func HashToBig(hash *types.Hash) *big.Int {
 	// reverse the bytes of the hash (little-endian) to use it in the big
 	// package (big-endian)
-	buf := hash.Byte32()
+	buf := hash.Value()
 	blen := len(buf)
 	for i := 0; i < blen/2; i++ {
 		buf[i], buf[blen-1-i] = buf[blen-1-i], buf[i]
@@ -128,13 +127,13 @@ func CheckProofOfWork(hash *types.Hash, bits uint64) bool {
 // mining progress.
 func CalcNextRequiredDifficulty(lastBH, compareBH *types.BlockHeader) uint64 {
 	if (lastBH.Height)%consensus.BlocksPerRetarget != 0 || lastBH.Height == 0 {
-		return lastBH.Proof.(*pow.WorkProof).Target
+		return lastBH.Proof.(*WorkProof).Target
 	}
 
 	targetTimeSpan := int64(consensus.BlocksPerRetarget * consensus.TargetSecondsPerBlock)
 	actualTimeSpan := int64(lastBH.Timestamp - compareBH.Timestamp)
 
-	oldTarget := CompactToBig(lastBH.Proof.(*pow.WorkProof).Target)
+	oldTarget := CompactToBig(lastBH.Proof.(*WorkProof).Target)
 	newTarget := new(big.Int).Mul(oldTarget, big.NewInt(actualTimeSpan))
 	newTarget.Div(newTarget, big.NewInt(targetTimeSpan))
 	newTargetBits := BigToCompact(newTarget)

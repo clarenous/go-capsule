@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/clarenous/go-capsule/consensus/algorithm/pow"
+	ca "github.com/clarenous/go-capsule/consensus/algorithm"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/clarenous/go-capsule/consensus"
@@ -25,10 +25,12 @@ func genesisTx() *types.Tx {
 func mainNetGenesisBlock() *types.Block {
 	tx := genesisTx()
 
-	merkleRoot, err := types.TxMerkleRoot([]*types.Tx{tx.Tx})
+	merkleRoot, err := types.TxMerkleRoot([]*types.Tx{tx})
 	if err != nil {
 		log.Panicf("fail on calc genesis tx merkel root")
 	}
+
+	proof, _ := ca.NewProof(consensus.ProofType, 2161727821137910632, 9253507043297)
 
 	block := &types.Block{
 		BlockHeader: types.BlockHeader{
@@ -36,11 +38,8 @@ func mainNetGenesisBlock() *types.Block {
 			Height:          0,
 			Timestamp:       1524549600,
 			TransactionRoot: merkleRoot,
-			WitnessRoot:     txStatusHash,
-			Proof: &pow.WorkProof{
-				Target: 2161727821137910632,
-				Nonce:  9253507043297,
-			},
+			WitnessRoot:     merkleRoot,
+			Proof:           proof,
 		},
 		Transactions: []*types.Tx{tx},
 	}
@@ -50,10 +49,12 @@ func mainNetGenesisBlock() *types.Block {
 func testNetGenesisBlock() *types.Block {
 	tx := genesisTx()
 
-	merkleRoot, err := types.TxMerkleRoot([]*types.Tx{tx.Tx})
+	merkleRoot, err := types.TxMerkleRoot([]*types.Tx{tx})
 	if err != nil {
 		log.Panicf("fail on calc genesis tx merkel root")
 	}
+
+	proof, _ := ca.NewProof(consensus.ProofType, 2305843009214532812, 9253507043297)
 
 	block := &types.Block{
 		BlockHeader: types.BlockHeader{
@@ -61,11 +62,8 @@ func testNetGenesisBlock() *types.Block {
 			Height:          0,
 			Timestamp:       1528945000,
 			TransactionRoot: merkleRoot,
-			WitnessRoot:     txStatusHash,
-			Proof: &pow.WorkProof{
-				Target: 2305843009214532812,
-				Nonce:  9253507043297,
-			},
+			WitnessRoot:     merkleRoot,
+			Proof:           proof,
 		},
 		Transactions: []*types.Tx{tx},
 	}
@@ -75,10 +73,12 @@ func testNetGenesisBlock() *types.Block {
 func soloNetGenesisBlock() *types.Block {
 	tx := genesisTx()
 
-	merkleRoot, err := types.TxMerkleRoot([]*types.Tx{tx.Tx})
+	merkleRoot, err := types.TxMerkleRoot([]*types.Tx{tx})
 	if err != nil {
 		log.Panicf("fail on calc genesis tx merkel root")
 	}
+
+	proof, _ := ca.NewProof(consensus.ProofType, 2305843009214532812, 9253507043297)
 
 	block := &types.Block{
 		BlockHeader: types.BlockHeader{
@@ -86,11 +86,8 @@ func soloNetGenesisBlock() *types.Block {
 			Height:          0,
 			Timestamp:       1528945000,
 			TransactionRoot: merkleRoot,
-			WitnessRoot:     txStatusHash,
-			Proof: &pow.WorkProof{
-				Target: 2305843009214532812,
-				Nonce:  9253507043297,
-			},
+			WitnessRoot:     merkleRoot,
+			Proof:           proof,
 		},
 		Transactions: []*types.Tx{tx},
 	}

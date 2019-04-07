@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/hex"
+	"github.com/clarenous/go-capsule/consensus/algorithm/pow"
 	"github.com/clarenous/go-capsule/protocol/types"
 	"github.com/golang/protobuf/ptypes/empty"
 	"golang.org/x/net/context"
@@ -108,8 +109,8 @@ func constructBlockHeaderResp(resp interface{}, header *types.BlockHeader) {
 		e.Previous = header.Previous.String()
 		e.TransactionRoot = header.TransactionRoot.String()
 		e.WitnessRoot = header.WitnessRoot.String()
-		e.Proof.Nonce = rand.Uint64()
-		e.Proof.Target = rand.Uint64()
+		e.Proof.Nonce = header.Proof.(*pow.WorkProof).Nonce
+		e.Proof.Target = header.Proof.(*pow.WorkProof).Target
 
 	case *GetBlockHeaderResponse:
 		e.Hash = header.Hash().String()
@@ -120,8 +121,8 @@ func constructBlockHeaderResp(resp interface{}, header *types.BlockHeader) {
 		e.Previous = header.Previous.String()
 		e.TransactionRoot = header.TransactionRoot.String()
 		e.WitnessRoot = header.WitnessRoot.String()
-		e.Proof.Nonce = rand.Uint64()
-		e.Proof.Target = rand.Uint64()
+		e.Proof.Nonce = header.Proof.(*pow.WorkProof).Nonce
+		e.Proof.Target = header.Proof.(*pow.WorkProof).Target
 
 	case *GetBlockVerboseV0Response:
 		e.Hash = header.Hash().String()
@@ -132,8 +133,8 @@ func constructBlockHeaderResp(resp interface{}, header *types.BlockHeader) {
 		e.Previous = header.Previous.String()
 		e.TransactionRoot = header.TransactionRoot.String()
 		e.WitnessRoot = header.WitnessRoot.String()
-		e.Proof.Nonce = rand.Uint64()
-		e.Proof.Target = rand.Uint64()
+		e.Proof.Nonce = header.Proof.(*pow.WorkProof).Nonce
+		e.Proof.Target = header.Proof.(*pow.WorkProof).Target
 
 	case *GetBlockVerboseV1Response:
 		e.Hash = header.Hash().String()
@@ -144,8 +145,8 @@ func constructBlockHeaderResp(resp interface{}, header *types.BlockHeader) {
 		e.Previous = header.Previous.String()
 		e.TransactionRoot = header.TransactionRoot.String()
 		e.WitnessRoot = header.WitnessRoot.String()
-		e.Proof.Nonce = rand.Uint64()
-		e.Proof.Target = rand.Uint64()
+		e.Proof.Nonce = header.Proof.(*pow.WorkProof).Nonce
+		e.Proof.Target = header.Proof.(*pow.WorkProof).Target
 	default:
 
 	}
