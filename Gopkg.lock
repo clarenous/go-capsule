@@ -234,6 +234,14 @@
   version = "v1.0.0"
 
 [[projects]]
+  digest = "1:9ffc0db15d8de463144fdc52af75a21b9d6ffc9af2a91e3ed294758ac19c734e"
+  name = "github.com/prometheus/prometheus"
+  packages = ["util/flock"]
+  pruneopts = "UT"
+  revision = "85f23d82a045d103ea7f3c89a91fba4a93e6367a"
+  version = "v2.1.0"
+
+[[projects]]
   digest = "1:87c2e02fb01c27060ccc5ba7c5a407cc91147726f8f40b70cceeedbc52b1f3a8"
   name = "github.com/sirupsen/logrus"
   packages = ["."]
@@ -543,6 +551,7 @@
     "github.com/grpc-ecosystem/grpc-gateway/utilities",
     "github.com/mitchellh/go-homedir",
     "github.com/pkg/errors",
+    "github.com/prometheus/prometheus/util/flock",
     "github.com/sirupsen/logrus",
     "github.com/spf13/cobra",
     "github.com/spf13/viper",
