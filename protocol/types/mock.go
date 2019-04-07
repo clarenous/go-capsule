@@ -91,22 +91,17 @@ func MockEvidence() *Evidence {
 }
 
 func MockHash() Hash {
-	return Hash{
-		S0: rand.Uint64(),
-		S1: rand.Uint64(),
-		S2: rand.Uint64(),
-		S3: rand.Uint64(),
-	}
+	var h Hash
+	b32 := MockLenBytes(32)
+	copy(h[:], b32)
+	return h
 }
 
 func MockHash160() Hash160 {
-	return Hash160{
-		S0: rand.Uint32(),
-		S1: rand.Uint32(),
-		S2: rand.Uint32(),
-		S3: rand.Uint32(),
-		S4: rand.Uint32(),
-	}
+	var h Hash160
+	b20 := MockLenBytes(20)
+	copy(h[:], b20)
+	return h
 }
 
 func MockLenBytes(n int) []byte {

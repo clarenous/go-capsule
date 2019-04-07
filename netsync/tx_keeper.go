@@ -81,7 +81,7 @@ func (sm *SyncManager) txSyncLoop() {
 		sendTxs := []*types.Tx{}
 		for i := 0; i < len(msg.txs) && totalSize < txSyncPackSize; i++ {
 			sendTxs = append(sendTxs, msg.txs[i])
-			totalSize += msg.txs[i].SerializedSize
+			totalSize += msg.txs[i].SerializedSize()
 		}
 
 		if len(msg.txs) == len(sendTxs) {

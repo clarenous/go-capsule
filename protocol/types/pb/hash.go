@@ -1,13 +1,12 @@
-package types
+package typespb
 
 import (
 	"bytes"
+	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/clarenous/go-capsule/protocol/types/pb"
-	"golang.org/x/crypto/sha3"
 	"io"
 )
 
@@ -16,30 +15,44 @@ const (
 	HashStringSize = HashSize * 2
 )
 
-type Hash [HashSize]byte
+// NewHash convert the input byte array to hash
+func NewHash(b32 [32]byte) (h Hash) {
+	h.S0 = binary.BigEndian.Uint64(b32[0:8])
+	h.S1 = binary.BigEndian.Uint64(b32[8:16])
+	h.S2 = binary.BigEndian.Uint64(b32[16:24])
+	h.S3 = binary.BigEndian.Uint64(b32[24:32])
+	return h
+}
 
-// EmptyHash represents a 256-bit hash.
-var EmptyHash = sha3.Sum256(nil)
+// Byte32 return the byte array representation
+func (h Hash) Byte32() (b32 [32]byte) {
+	binary.BigEndian.PutUint64(b32[0:8], h.S0)
+	binary.BigEndian.PutUint64(b32[8:16], h.S1)
+	binary.BigEndian.PutUint64(b32[16:24], h.S2)
+	binary.BigEndian.PutUint64(b32[24:32], h.S3)
+	return b32
+}
 
 // MarshalText satisfies the TextMarshaler interface.
 // It returns the bytes of h encoded in hex,
 // for formats that can't hold arbitrary binary data.
 // It never returns an error.
 func (h Hash) MarshalText() ([]byte, error) {
+	b := h.Byte32()
 	v := make([]byte, 64)
-	hex.Encode(v, h[:])
+	hex.Encode(v, b[:])
 	return v, nil
 }
 
 // UnmarshalText satisfies the TextUnmarshaler interface.
 // It decodes hex data from b into h.
 func (h *Hash) UnmarshalText(v []byte) error {
-	var b Hash
+	var b [32]byte
 	if len(v) != 64 {
 		return fmt.Errorf("bad length hash string %d", len(v))
 	}
 	_, err := hex.Decode(b[:], v)
-	*h = b
+	*h = NewHash(b)
 	return err
 }
 
@@ -60,11 +73,8 @@ func (h *Hash) UnmarshalJSON(b []byte) error {
 
 // Bytes returns the byte representation
 func (h Hash) Bytes() []byte {
-	return h[:]
-}
-
-func (h Hash) String() string {
-	return hex.EncodeToString(h[:])
+	b32 := h.Byte32()
+	return b32[:]
 }
 
 func NewHashFromString(src string) (Hash, error) {
@@ -75,9 +85,9 @@ func NewHashFromString(src string) (Hash, error) {
 	if err != nil {
 		return Hash{}, err
 	}
-	var b32 Hash
+	var b32 [32]byte
 	copy(b32[:], b)
-	return b32, nil
+	return NewHash(b32), nil
 }
 
 // WriteTo satisfies the io.WriterTo interface.
@@ -88,12 +98,12 @@ func (h Hash) WriteTo(w io.Writer) (int64, error) {
 
 // ReadFrom satisfies the io.ReaderFrom interface.
 func (h *Hash) ReadFrom(r io.Reader) (int64, error) {
-	var b32 Hash
+	var b32 [32]byte
 	n, err := io.ReadFull(r, b32[:])
 	if err != nil {
 		return int64(n), err
 	}
-	*h = b32
+	*h = NewHash(b32)
 	return int64(n), nil
 }
 
@@ -108,24 +118,4 @@ func (h *Hash) IsZero() bool {
 
 func (h Hash) Ptr() *Hash {
 	return &h
-}
-
-func (h *Hash) Value() Hash {
-	return *h
-}
-
-func (h *Hash) ToProto() *typespb.Hash {
-	pb := typespb.NewHash(*h)
-	return &pb
-}
-
-func (h *Hash) FromProto(pb *typespb.Hash) error {
-	*h = pb.Byte32()
-	return nil
-}
-
-func NewHashFromProto(pb *typespb.Hash) *Hash {
-	h := new(Hash)
-	h.FromProto(pb)
-	return h
 }
