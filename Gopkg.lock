@@ -135,6 +135,14 @@
   version = "v1.8.5"
 
 [[projects]]
+  digest = "1:950caca7dfcf796419232ba996c9c3539d09f26af27ba848c4508e604c13efbb"
+  name = "github.com/hashicorp/go-version"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "d40cf49b3a77bba84a7afdbd7f1dc295d114efb1"
+  version = "v1.1.0"
+
+[[projects]]
   digest = "1:c0d19ab64b32ce9fe5cf4ddceba78d5bc9807f0016db6b1183599da3dcc24d10"
   name = "github.com/hashicorp/hcl"
   packages = [
@@ -192,14 +200,6 @@
   pruneopts = "UT"
   revision = "c2353362d570a7bfa228149c62842019201cfb71"
   version = "v1.8.0"
-
-[[projects]]
-  digest = "1:5d231480e1c64a726869bc4142d270184c419749d34f167646baa21008eb0a79"
-  name = "github.com/mitchellh/go-homedir"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "af06845cf3004701891bf4fdb884bfe4920b3727"
-  version = "v1.1.0"
 
 [[projects]]
   digest = "1:53bc4cd4914cd7cd52139990d5170d6dc99067ae31c56530621b18b35fc30318"
@@ -364,9 +364,10 @@
   version = "v0.9.0"
 
 [[projects]]
-  digest = "1:16503a0105f9691b6d311537898ad99de7382016fa18a5fb4851614b93c00fce"
+  digest = "1:5c5f854a1deb36bba2ee739f1648fa0958a1f3cdd88232c15f87d001d9942a4a"
   name = "github.com/tendermint/tmlibs"
   packages = [
+    "cli",
     "common",
     "db",
     "flowrate",
@@ -549,7 +550,7 @@
     "github.com/golang/protobuf/ptypes/empty",
     "github.com/grpc-ecosystem/grpc-gateway/runtime",
     "github.com/grpc-ecosystem/grpc-gateway/utilities",
-    "github.com/mitchellh/go-homedir",
+    "github.com/hashicorp/go-version",
     "github.com/pkg/errors",
     "github.com/prometheus/prometheus/util/flock",
     "github.com/sirupsen/logrus",
@@ -565,6 +566,7 @@
     "github.com/syndtr/goleveldb/leveldb/util",
     "github.com/tendermint/go-amino",
     "github.com/tendermint/go-crypto",
+    "github.com/tendermint/tmlibs/cli",
     "github.com/tendermint/tmlibs/common",
     "github.com/tendermint/tmlibs/db",
     "github.com/tendermint/tmlibs/flowrate",
