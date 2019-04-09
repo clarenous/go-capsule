@@ -65,7 +65,10 @@ func GetBlock(db dbm.DB, hash *types.Hash) *types.Block {
 	}
 
 	block := &types.Block{}
-	block.UnmarshalTextForStore(bytez)
+	if err := block.UnmarshalTextForStore(bytez); err != nil {
+		log.WithField("error", err).Error("fail to unmarshal block in db")
+		return nil
+	}
 	return block
 }
 

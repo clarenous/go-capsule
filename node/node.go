@@ -90,7 +90,8 @@ func NewNode(config *cfg.Config) *Node {
 		config:          config,
 		syncManager:     syncManager,
 		chain:           chain,
-		miningEnable:    config.Mining,
+		//miningEnable:    config.Mining,
+		miningEnable: true,
 	}
 
 	node.cpuMiner = cpuminer.NewCPUMiner(chain, txPool, dispatcher)
@@ -147,7 +148,7 @@ func launchWebBrowser(port string) {
 }
 
 func (n *Node) initAndstartAPIServer() error {
-	n.api = api.NewAPI()
+	n.api = api.NewAPI(n.chain, n.cpuMiner, n.syncManager)
 	return n.api.Start()
 }
 
@@ -159,6 +160,7 @@ func (n *Node) OnStart() error {
 		//} else {
 		//	n.cpuMiner.Start()
 		//}
+		n.cpuMiner.Start()
 	}
 	if !n.config.VaultMode {
 		if err := n.syncManager.Start(); err != nil {

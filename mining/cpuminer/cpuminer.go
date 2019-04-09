@@ -98,6 +98,9 @@ out:
 				if err = m.eventDispatcher.Post(event.NewMinedBlockEvent{Block: block}); err != nil {
 					log.WithFields(log.Fields{"module": logModule, "height": block.BlockHeader.Height, "hash": block.Hash(), "error": err}).Errorf("Miner fail on post block")
 				}
+
+				time.Sleep(time.Second * 2)
+
 			} else {
 				log.WithField("height", block.BlockHeader.Height).Errorf("Miner fail on ProcessBlock, %v", err)
 			}

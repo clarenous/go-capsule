@@ -1224,7 +1224,7 @@ func (net *Network) checkTopicRegister(data *topicRegister) (*pong, error) {
 
 func wireHash(x interface{}) (h common.Hash, n int, err error) {
 	hw := sha3.New256()
-	m, err := amino.MarshalBinaryWriter(hw, x)
+	m, err := amino.MarshalBinaryLengthPrefixedWriter(hw, x)
 	n = int(m)
 	hw.Sum(h[:0])
 	return h, n, err

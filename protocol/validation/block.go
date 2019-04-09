@@ -88,7 +88,7 @@ func ValidateBlock(b *types.Block, parent *state.BlockNode) error {
 		return errors.Wrap(err, "computing transaction id merkle root")
 	}
 	if txWitnessRoot != b.WitnessRoot {
-		return errors.WithDetailf(errMismatchedMerkleRoot, "transaction id merkle root")
+		return errors.WithDetailf(errMismatchedMerkleRoot, "witness id merkle root")
 	}
 
 	log.WithFields(log.Fields{

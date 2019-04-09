@@ -178,7 +178,7 @@ func (db *nodeDB) node(id NodeID) *Node {
 		return nil
 	}
 
-	_, err = amino.UnmarshalBinaryReader(bytes.NewReader(rawData), node, 0)
+	_, err = amino.UnmarshalBinaryLengthPrefixedReader(bytes.NewReader(rawData), node, 0)
 	if err != nil {
 		log.WithFields(log.Fields{"module": logModule, "key": key, "node": node, "error": err}).Warn("get node from db err")
 		return nil
@@ -195,7 +195,7 @@ func (db *nodeDB) updateNode(node *Node) error {
 		blob = new(bytes.Buffer)
 	)
 
-	_, err = amino.MarshalBinaryWriter(blob, node)
+	_, err = amino.MarshalBinaryLengthPrefixedWriter(blob, node)
 	if err != nil {
 		return err
 	}
@@ -386,7 +386,7 @@ func nextNode(it iterator.Iterator) *Node {
 			continue
 		}
 
-		_, err = amino.UnmarshalBinaryReader(bytes.NewReader(it.Value()), node, 0)
+		_, err = amino.UnmarshalBinaryLengthPrefixedReader(bytes.NewReader(it.Value()), node, 0)
 		if err != nil {
 			log.WithFields(log.Fields{"module": logModule, "id": id, "error": err}).Error("invalid node")
 			continue

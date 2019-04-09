@@ -23,12 +23,13 @@ type BlockNode struct {
 	Hash    types.Hash // hash of the block.
 	WorkSum *big.Int   // total amount of work in the chain up to
 
+	ChainID         types.Hash
 	Version         uint64
 	Height          uint64
 	Timestamp       uint64
-	Proof           ca.Proof
 	TransactionRoot types.Hash
 	WitnessRoot     types.Hash
+	Proof           ca.Proof
 }
 
 func NewBlockNode(bh *types.BlockHeader, parent *BlockNode) (*BlockNode, error) {
@@ -40,12 +41,13 @@ func NewBlockNode(bh *types.BlockHeader, parent *BlockNode) (*BlockNode, error) 
 		Parent:          parent,
 		Hash:            bh.Hash(),
 		WorkSum:         bh.Proof.CalcWeight(),
+		ChainID:         bh.ChainID,
 		Version:         bh.Version,
 		Height:          bh.Height,
 		Timestamp:       bh.Timestamp,
-		Proof:           bh.Proof,
 		TransactionRoot: bh.TransactionRoot,
 		WitnessRoot:     bh.WitnessRoot,
+		Proof:           bh.Proof,
 	}
 
 	if bh.Height != 0 {
@@ -61,11 +63,13 @@ func (node *BlockNode) BlockHeader() *types.BlockHeader {
 		previousBlockHash = node.Parent.Hash
 	}
 	return &types.BlockHeader{
+		ChainID:         node.ChainID,
 		Version:         node.Version,
 		Height:          node.Height,
 		Timestamp:       node.Timestamp,
 		Previous:        previousBlockHash,
 		TransactionRoot: node.TransactionRoot,
+		WitnessRoot:     node.WitnessRoot,
 		Proof:           node.Proof,
 	}
 }

@@ -196,6 +196,7 @@ func (blk *Block) UnmarshalTextForStore(buf []byte) error {
 
 	// Read blockHeader
 	bhPb, header, bhBytes := new(typespb.BlockHeader), new(BlockHeader), make([]byte, readLength())
+	r.Read(bhBytes)
 	if err := proto.Unmarshal(bhBytes, bhPb); err != nil {
 		return err
 	}
@@ -211,6 +212,7 @@ func (blk *Block) UnmarshalTextForStore(buf []byte) error {
 	blk.Transactions = make([]*Tx, txCount)
 	for i := 0; i < txCount; i++ {
 		txPb, tx, txBytes := new(typespb.Tx), new(Tx), make([]byte, readLength())
+		r.Read(txBytes)
 		if err := proto.Unmarshal(txBytes, txPb); err != nil {
 			return err
 		}

@@ -161,7 +161,7 @@ type (
 )
 
 var (
-	versionPrefix     = []byte("bytom discovery")
+	versionPrefix     = []byte("capsule discovery")
 	versionPrefixSize = len(versionPrefix)
 	nodeIDSize        = 32
 	sigSize           = 520 / 8

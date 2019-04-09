@@ -240,7 +240,7 @@ func shareAuthSignature(sc *SecretConnection, pubKey crypto.PubKeyEd25519, signa
 
 	cmn.Parallel(
 		func(i int) (interface{}, error, bool) {
-			msgBytes := amino.MustMarshalBinary(authSigMessage{pubKey.Wrap(), signature.Wrap()})
+			msgBytes := amino.MustMarshalBinaryLengthPrefixed(authSigMessage{pubKey.Wrap(), signature.Wrap()})
 			_, err1 = sc.Write(msgBytes)
 			return nil, err1, false
 		},
@@ -250,7 +250,7 @@ func shareAuthSignature(sc *SecretConnection, pubKey crypto.PubKeyEd25519, signa
 			if err2 != nil {
 				return nil, err2, false
 			}
-			_, err2 = amino.UnmarshalBinaryReader(bytes.NewBuffer(readBuffer), &recvMsg, authSigMsgSize)
+			_, err2 = amino.UnmarshalBinaryLengthPrefixedReader(bytes.NewBuffer(readBuffer), &recvMsg, authSigMsgSize)
 			return nil, err2, false
 		},
 	)

@@ -40,7 +40,7 @@ const (
 var cdc = amino.NewCodec()
 
 func RegisterAmino(cdc *amino.Codec) {
-	cdc.RegisterInterface(struct{ BlockchainMessage }{}, nil)
+	cdc.RegisterInterface((*BlockchainMessage)(nil), nil)
 	cdc.RegisterConcrete(&GetBlockMessage{}, string(BlockRequestByte), nil)
 	cdc.RegisterConcrete(&BlockMessage{}, string(BlockResponseByte), nil)
 	cdc.RegisterConcrete(&GetHeadersMessage{}, string(HeadersRequestByte), nil)
@@ -66,7 +66,7 @@ func DecodeMessage(bz []byte) (msgType byte, msg BlockchainMessage, err error) {
 	msgType = bz[0]
 	r := bytes.NewReader(bz)
 	n := int64(0)
-	n, err = cdc.UnmarshalBinaryReader(r, &msg, maxBlockchainResponseSize)
+	n, err = cdc.UnmarshalBinaryLengthPrefixedReader(r, &msg, maxBlockchainResponseSize)
 	if err != nil && int(n) != len(bz) {
 		err = errors.New("DecodeMessage() had bytes left over")
 	}

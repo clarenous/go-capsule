@@ -7,7 +7,7 @@ import (
 )
 
 func TestAPI(t *testing.T) {
-	a := NewAPI()
+	a := NewAPI(nil, nil, nil)
 
 	err := a.Start()
 	if err != nil {

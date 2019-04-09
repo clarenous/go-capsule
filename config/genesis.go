@@ -27,10 +27,13 @@ func mainNetGenesisBlock() *types.Block {
 
 	merkleRoot, err := types.TxMerkleRoot([]*types.Tx{tx})
 	if err != nil {
-		log.Panicf("fail on calc genesis tx merkel root")
+		log.Panicf("fail on calc genesis tx merkle root")
 	}
 
-	proof, _ := ca.NewProof(consensus.ProofType, 2161727821137910632, 9253507043297)
+	proof, err := ca.NewProof(consensus.ProofType, 2161727821137910632, 9253507043297)
+	if err != nil {
+		log.Panicf("fail on calc genesis proof")
+	}
 
 	block := &types.Block{
 		BlockHeader: types.BlockHeader{
@@ -51,7 +54,7 @@ func testNetGenesisBlock() *types.Block {
 
 	merkleRoot, err := types.TxMerkleRoot([]*types.Tx{tx})
 	if err != nil {
-		log.Panicf("fail on calc genesis tx merkel root")
+		log.Panicf("fail on calc genesis tx merkle root")
 	}
 
 	proof, _ := ca.NewProof(consensus.ProofType, 2305843009214532812, 9253507043297)
@@ -75,7 +78,7 @@ func soloNetGenesisBlock() *types.Block {
 
 	merkleRoot, err := types.TxMerkleRoot([]*types.Tx{tx})
 	if err != nil {
-		log.Panicf("fail on calc genesis tx merkel root")
+		log.Panicf("fail on calc genesis tx merkle root")
 	}
 
 	proof, _ := ca.NewProof(consensus.ProofType, 2305843009214532812, 9253507043297)

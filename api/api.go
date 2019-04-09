@@ -3,6 +3,9 @@ package api
 import (
 	"flag"
 	"fmt"
+	"github.com/clarenous/go-capsule/mining/cpuminer"
+	"github.com/clarenous/go-capsule/netsync"
+	"github.com/clarenous/go-capsule/protocol"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
@@ -21,11 +24,18 @@ const (
 )
 
 type API struct {
-	server *grpc.Server
+	server      *grpc.Server
+	Chain       *protocol.Chain
+	Miner       *cpuminer.CPUMiner
+	SyncManager *netsync.SyncManager
 }
 
-func NewAPI() *API {
-	api := &API{}
+func NewAPI(chain *protocol.Chain, miner *cpuminer.CPUMiner, syncManager *netsync.SyncManager) *API {
+	api := &API{
+		Chain:       chain,
+		Miner:       miner,
+		SyncManager: syncManager,
+	}
 	api.initServer()
 	return api
 }
@@ -60,7 +70,7 @@ func (a *API) runGateway() {
 	}
 
 	go func() {
-		log.Info("starting gateway")
+		log.WithFields(log.Fields{"port_grpc": defaultGRPCPort, "port_http": defaultHTTPPort}).Info("starting gateway on port")
 		if err := run(); err != nil {
 			log.Error("fail on runGateway", err)
 		}

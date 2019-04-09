@@ -5,6 +5,7 @@ import (
 	"github.com/clarenous/go-capsule/errors"
 	"github.com/clarenous/go-capsule/protocol"
 	"github.com/clarenous/go-capsule/protocol/types"
+	"time"
 )
 
 // createCoinbaseTx returns a coinbase transaction paying an appropriate subsidy
@@ -36,6 +37,7 @@ func NewBlockTemplate(c *protocol.Chain, txPool *protocol.TxPool) (b *types.Bloc
 
 	b.Previous = preBlockHash
 	b.Height = nextBlockHeight
+	b.Timestamp = uint64(time.Now().Unix())
 	//nextBits, err := c.CalcNextBits(&preBlockHash)
 	//if err != nil {
 	//	return nil, err
@@ -102,6 +104,9 @@ func NewBlockTemplate(c *protocol.Chain, txPool *protocol.TxPool) (b *types.Bloc
 	if err != nil {
 		return nil, errors.Wrap(err, "fail on createCoinbaseTx")
 	}
+
+	b.TransactionRoot, err = types.TxMerkleRoot(b.Transactions)
+	b.WitnessRoot = b.TransactionRoot
 
 	return b, err
 }

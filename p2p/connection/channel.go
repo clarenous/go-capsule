@@ -149,7 +149,7 @@ func (ch *channel) writeMsgPacketTo(w io.Writer) (n int, err error) {
 	packet := ch.nextMsgPacket()
 	err = amino.EncodeByte(w, packetTypeMsg)
 	n += 1
-	m, err := amino.MarshalBinaryWriter(w, packet)
+	m, err := amino.MarshalBinaryLengthPrefixedWriter(w, packet)
 	if err == nil {
 		ch.recentlySent += int64(n)
 	}

@@ -6,19 +6,23 @@ import (
 	"github.com/clarenous/go-capsule/protocol/types"
 	"github.com/golang/protobuf/ptypes/empty"
 	"golang.org/x/net/context"
-	"math/rand"
 )
 
 func (a *API) GetBestBlock(ctx context.Context, in *empty.Empty) (*GetBestBlockResponse, error) {
+	bestHeader := a.Chain.BestBlockHeader()
 	resp := &GetBestBlockResponse{
-		Height: rand.Uint64() % 1000,
-		Hash:   types.MockHash().String(),
+		Height: bestHeader.Height,
+		Hash:   bestHeader.Hash().String(),
 	}
 	return resp, nil
 }
 
 func (a *API) GetBlock(ctx context.Context, in *GetBlockRequest) (*GetBlockResponse, error) {
-	block := types.MockBlock()
+	block, err := a.getBlockByID(in.Id)
+	if err != nil {
+		return nil, err
+	}
+
 	var evidenceCount int
 	for _, tx := range block.Transactions {
 		evidenceCount += len(tx.Evidences)
@@ -46,7 +50,10 @@ func (a *API) GetBlock(ctx context.Context, in *GetBlockRequest) (*GetBlockRespo
 }
 
 func (a *API) GetBlockHeader(ctx context.Context, in *GetBlockHeaderRequest) (*GetBlockHeaderResponse, error) {
-	block := types.MockBlock()
+	block, err := a.getBlockByID(in.Id)
+	if err != nil {
+		return nil, err
+	}
 
 	resp := &GetBlockHeaderResponse{
 		Proof: &Proof{},
@@ -58,7 +65,10 @@ func (a *API) GetBlockHeader(ctx context.Context, in *GetBlockHeaderRequest) (*G
 }
 
 func (a *API) GetBlockVerboseV0(ctx context.Context, in *GetBlockVerboseRequest) (*GetBlockVerboseV0Response, error) {
-	block := types.MockBlock()
+	block, err := a.getBlockByID(in.Id)
+	if err != nil {
+		return nil, err
+	}
 
 	resp := &GetBlockVerboseV0Response{
 		Proof:        &Proof{},
@@ -81,7 +91,10 @@ func (a *API) GetBlockVerboseV0(ctx context.Context, in *GetBlockVerboseRequest)
 }
 
 func (a *API) GetBlockVerboseV1(ctx context.Context, in *GetBlockVerboseRequest) (*GetBlockVerboseV1Response, error) {
-	block := types.MockBlock()
+	block, err := a.getBlockByID(in.Id)
+	if err != nil {
+		return nil, err
+	}
 
 	resp := &GetBlockVerboseV1Response{
 		Proof:        &Proof{},

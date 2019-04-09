@@ -150,11 +150,11 @@ func (pc *peerConn) HandshakeTimeout(ourNodeInfo *NodeInfo, timeout time.Duratio
 	var err1, err2 error
 	cmn.Parallel(
 		func(i int) (interface{}, error, bool) {
-			_, err1 = amino.MarshalBinaryWriter(pc.conn, ourNodeInfo)
+			_, err1 = amino.MarshalBinaryLengthPrefixedWriter(pc.conn, ourNodeInfo)
 			return nil, err1, false
 		},
 		func(i int) (interface{}, error, bool) {
-			_, err2 = amino.MarshalBinaryWriter(pc.conn, peerNodeInfo)
+			_, err2 = amino.MarshalBinaryLengthPrefixedWriter(pc.conn, peerNodeInfo)
 			log.WithFields(log.Fields{"module": logModule, "address": peerNodeInfo.ListenAddr}).Info("Peer handshake")
 			return nil, err2, false
 		})

@@ -188,7 +188,7 @@ func (c *MConnection) Send(chID byte, msg interface{}) bool {
 		return false
 	}
 
-	if !channel.sendBytes(amino.MustMarshalBinary(msg)) {
+	if !channel.sendBytes(amino.MustMarshalBinaryLengthPrefixed(msg)) {
 		log.WithFields(log.Fields{"module": logModule, "chID": chID, "conn": c, "msg": msg}).Error("MConnection send failed")
 		return false
 	}
@@ -219,7 +219,7 @@ func (c *MConnection) TrySend(chID byte, msg interface{}) bool {
 		return false
 	}
 
-	ok = channel.trySendBytes(amino.MustMarshalBinary(msg))
+	ok = channel.trySendBytes(amino.MustMarshalBinaryLengthPrefixed(msg))
 	if ok {
 		select {
 		case c.send <- struct{}{}:
@@ -288,7 +288,7 @@ func (c *MConnection) recvRoutine() {
 
 		case packetTypeMsg:
 			pkt, n, err := msgPacket{}, int64(0), error(nil)
-			n, err = amino.UnmarshalBinaryReader(c.bufReader, &pkt, maxMsgPacketTotalSize)
+			n, err = amino.UnmarshalBinaryLengthPrefixedReader(c.bufReader, &pkt, maxMsgPacketTotalSize)
 			c.recvMonitor.Update(int(n))
 			if err != nil {
 				if c.IsRunning() {

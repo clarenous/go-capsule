@@ -19,7 +19,7 @@ var runNodeCmd = &cobra.Command{
 }
 
 func init() {
-	runNodeCmd.Flags().String("prof_laddr", config.ProfListenAddress, "Use http to profile bytomd programs")
+	runNodeCmd.Flags().String("prof_laddr", config.ProfListenAddress, "Use http to profile capsuled programs")
 	runNodeCmd.Flags().Bool("mining", config.Mining, "Enable mining")
 
 	runNodeCmd.Flags().Bool("simd.enable", config.Simd.Enable, "Enable SIMD mechan for tensority")
@@ -80,7 +80,7 @@ func runNode(cmd *cobra.Command, args []string) error {
 
 	// Create & start node
 	n := node.NewNode(config)
-	if _, err := n.Start(); err != nil {
+	if err := n.Start(); err != nil {
 		log.WithFields(log.Fields{"module": logModule, "err": err}).Fatal("failed to start node")
 	}
 

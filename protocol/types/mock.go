@@ -8,7 +8,7 @@ import (
 )
 
 func MockBlock() *Block {
-	var txsCount = rand.Intn(20)
+	var txsCount = rand.Intn(20) + 1
 	txs := make([]*Tx, txsCount)
 	for i := range txs {
 		txs[i] = MockTx()
@@ -40,7 +40,7 @@ func MockProof() ca.Proof {
 }
 
 func MockTx() *Tx {
-	var inputsCount, outputsCount, evidencesCount = rand.Intn(10), rand.Intn(5), rand.Intn(5)
+	var inputsCount, outputsCount, evidencesCount = rand.Intn(10) + 1, rand.Intn(5) + 1, rand.Intn(5)
 	inputs, outputs, evidences := make([]TxIn, inputsCount), make([]TxOut, outputsCount), make([]Evidence, evidencesCount)
 	for i := range inputs {
 		in := MockTxIn()

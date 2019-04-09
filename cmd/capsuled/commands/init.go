@@ -36,5 +36,5 @@ func initFiles(cmd *cobra.Command, args []string) {
 		cfg.EnsureRoot(config.RootDir, "solonet")
 	}
 
-	log.WithFields(log.Fields{"module": logModule, "config": configFilePath}).Info("Initialized bytom")
+	log.WithFields(log.Fields{"module": logModule, "config": configFilePath}).Info("Initialized capsule")
 }

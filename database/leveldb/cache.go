@@ -7,7 +7,6 @@ import (
 	"github.com/golang/groupcache/lru"
 	"github.com/golang/groupcache/singleflight"
 
-
 	"github.com/clarenous/go-capsule/protocol/types"
 )
 
@@ -35,7 +34,7 @@ func (c *blockCache) lookup(hash *types.Hash) (*types.Block, error) {
 	block, err := c.single.Do(hash.String(), func() (interface{}, error) {
 		b := c.fillFn(hash)
 		if b == nil {
-			return nil, fmt.Errorf("There are no block with given hash %s", hash.String())
+			return nil, fmt.Errorf("there are no block with given hash %s", hash.String())
 		}
 
 		c.add(b)
