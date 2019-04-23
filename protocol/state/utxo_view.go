@@ -7,10 +7,6 @@ import (
 	"github.com/clarenous/go-capsule/protocol/types"
 )
 
-var (
-	ErrWrongCoinbaseTransaction = errors.New("wrong coinbase transaction")
-)
-
 // UtxoViewpoint represents a view into the set of unspent transaction outputs
 type UtxoViewpoint struct {
 	Entries map[types.Hash]*storage.UtxoEntry
@@ -49,22 +45,6 @@ func (view *UtxoViewpoint) ApplyTransaction(block *types.Block, tx *types.Tx) er
 }
 
 func (view *UtxoViewpoint) ApplyBlock(block *types.Block) error {
-	// Check coinbase value
-	var fee uint64
-	for _, tx := range block.Transactions {
-		for _, in := range tx.Inputs {
-			entry, ok := view.Entries[in.ValueSource.Hash()]
-			if !ok {
-				return errors.New("fail to find utxo entry")
-			}
-			fee += entry.Value
-		}
-	}
-	coinbaseAmount := consensus.BlockSubsidy(block.Height)
-	if err := CheckCoinbaseAmount(block, coinbaseAmount+fee); err != nil {
-		return err
-	}
-
 	// Check Inputs
 	for _, tx := range block.Transactions {
 		if err := view.ApplyTransaction(block, tx); err != nil {
@@ -112,21 +92,4 @@ func (view *UtxoViewpoint) DetachBlock(block *types.Block) error {
 func (view *UtxoViewpoint) HasUtxo(hash *types.Hash) bool {
 	_, ok := view.Entries[*hash]
 	return ok
-}
-
-// TODO: check overflow! (19.03.24 gcy)
-func CheckCoinbaseAmount(b *types.Block, amount uint64) error {
-	if len(b.Transactions) == 0 {
-		return errors.Wrap(ErrWrongCoinbaseTransaction, "block is empty")
-	}
-
-	var totalOuts uint64
-	for _, out := range b.Transactions[0].Outputs {
-		totalOuts += out.Value
-	}
-
-	if totalOuts > amount {
-		return errors.Wrap(ErrWrongCoinbaseTransaction, "reward more than deserved")
-	}
-	return nil
 }

@@ -138,7 +138,7 @@ func (c *Chain) reorganizeChain(node *state.BlockNode) error {
 func (c *Chain) saveBlock(block *types.Block) error {
 	parent := c.index.GetNode(&block.Previous)
 
-	if err := validation.ValidateBlock(block, parent); err != nil {
+	if err := validation.ValidateBlock(c.store, block, parent); err != nil {
 		return errors.Sub(ErrBadBlock, err)
 	}
 	if err := c.store.SaveBlock(block); err != nil {

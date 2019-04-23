@@ -91,6 +91,23 @@ func (wp *WorkProof) CalcWeight() *big.Int {
 }
 
 func NewProof(args ...interface{}) (ca.Proof, error) {
+	if len(args) == 2 {
+		var target, nonce uint64
+		if v, ok := args[0].(uint64); ok {
+			target = v
+		} else {
+			return nil, ca.ErrInvalidCAArgs
+		}
+		if v, ok := args[1].(uint64); ok {
+			nonce = v
+		} else {
+			return nil, ca.ErrInvalidCAArgs
+		}
+		return &WorkProof{
+			Target: target,
+			Nonce:  nonce,
+		}, nil
+	}
 	return &WorkProof{}, nil
 }
 

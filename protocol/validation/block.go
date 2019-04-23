@@ -24,8 +24,26 @@ var (
 	errMisorderedBlockHeight = errors.New("misordered block height")
 	errOverBlockLimit        = errors.New("block's gas is over the limit")
 
-	errVersionRegression = errors.New("version regression")
+	errVersionRegression        = errors.New("version regression")
+	errWrongCoinbaseTransaction = errors.New("wrong coinbase transaction")
 )
+
+// TODO: check overflow! (19.03.24 gcy)
+func CheckCoinbaseAmount(b *types.Block, amount uint64) error {
+	if len(b.Transactions) == 0 {
+		return errors.Wrap(errWrongCoinbaseTransaction, "block is empty")
+	}
+
+	var totalOuts uint64
+	for _, out := range b.Transactions[0].Outputs {
+		totalOuts += out.Value
+	}
+
+	if totalOuts > amount {
+		return errors.Wrap(errWrongCoinbaseTransaction, "reward more than deserved")
+	}
+	return nil
+}
 
 func checkBlockTime(b *types.Block, parent *state.BlockNode) error {
 	if b.Timestamp > uint64(time.Now().Unix())+consensus.MaxTimeOffsetSeconds {
@@ -62,10 +80,41 @@ func ValidateBlockHeader(b *types.Block, parent *state.BlockNode) error {
 	return nil
 }
 
+// Store provides storage interface for blockchain data
+type Store interface {
+	GetTransaction(hash *types.Hash) (*types.Tx, error)
+}
+
 // ValidateBlock validates a block and the transactions within.
-func ValidateBlock(b *types.Block, parent *state.BlockNode) error {
+func ValidateBlock(store Store, b *types.Block, parent *state.BlockNode) error {
 	startTime := time.Now()
 	if err := ValidateBlockHeader(b, parent); err != nil {
+		return err
+	}
+
+	// Check coinBase value
+	var fee, totalIn, totalOut uint64
+	for _, tx := range b.Transactions[1:] {
+		for _, in := range tx.Inputs {
+			sourceTx, err := store.GetTransaction(&in.ValueSource.TxID)
+			if err != nil {
+				return err
+			}
+			if int(in.ValueSource.Index) >= len(sourceTx.Outputs) {
+				return errors.New("invalid output index")
+			}
+			totalIn += sourceTx.Outputs[in.ValueSource.Index].Value
+		}
+		for _, out := range tx.Outputs {
+			totalOut += out.Value
+		}
+	}
+	if totalOut < totalIn {
+		return errors.New("invalid fee in block")
+	}
+	fee = totalOut - totalIn
+	coinbaseAmount := consensus.BlockSubsidy(b.Height)
+	if err := CheckCoinbaseAmount(b, coinbaseAmount+fee); err != nil {
 		return err
 	}
 
