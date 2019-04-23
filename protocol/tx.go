@@ -40,3 +40,11 @@ func (c *Chain) ValidateTx(tx *types.Tx) (bool, error) {
 
 	return c.txPool.ProcessTransaction(tx, bh.Height)
 }
+
+func (c *Chain) GetTransaction(hash *types.Hash) (*types.Tx, error) {
+	return c.store.GetTransaction(hash)
+}
+
+func (c *Chain) GetEvidence(hash *types.Hash) (*types.Evidence, *types.Tx, int, error) {
+	return c.store.GetEvidence(hash)
+}

@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/hex"
 	"github.com/clarenous/go-capsule/consensus/algorithm/pow"
 	"github.com/clarenous/go-capsule/protocol/types"
 	"github.com/golang/protobuf/ptypes/empty"
@@ -163,47 +162,4 @@ func constructBlockHeaderResp(resp interface{}, header *types.BlockHeader) {
 	default:
 
 	}
-}
-
-func constructTxResp(resp *Tx, tx *types.Tx) {
-	txid := tx.Hash()
-
-	resp.Txid = txid.String()
-	resp.Version = tx.Version
-	resp.Inputs = make([]*Tx_TxIn, len(tx.Inputs))
-	resp.Outputs = make([]*Tx_TxOut, len(tx.Outputs))
-	resp.Evidences = make([]*Evidence, len(tx.Evidences))
-	resp.LockTime = tx.LockTime
-
-	for i, in := range tx.Inputs {
-		resp.Inputs[i] = &Tx_TxIn{
-			ValueSource: &Tx_TxIn_ValueSource{
-				Txid:  in.ValueSource.TxID.String(),
-				Index: in.ValueSource.Index,
-			},
-			RedeemScript: hex.EncodeToString(in.RedeemScript),
-			UnlockScript: hex.EncodeToString(in.UnlockScript),
-			Sequence:     in.Sequence,
-		}
-	}
-
-	for i, out := range tx.Outputs {
-		resp.Outputs[i] = &Tx_TxOut{
-			Value:      out.Value,
-			ScriptHash: out.ScriptHash.String(),
-		}
-	}
-
-	for i, evid := range tx.Evidences {
-		evidResp := new(Evidence)
-		constructEvidenceResp(evidResp, &evid, txid, uint64(i))
-		resp.Evidences[i] = evidResp
-	}
-}
-
-func constructEvidenceResp(resp *Evidence, evid *types.Evidence, txid types.Hash, index uint64) {
-	resp.Evid = evid.Hash(txid, index).String()
-	resp.Digest = hex.EncodeToString(evid.Digest)
-	resp.Source = hex.EncodeToString(evid.Source)
-	resp.ValidScript = hex.EncodeToString(evid.ValidScript)
 }

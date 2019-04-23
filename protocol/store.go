@@ -21,7 +21,7 @@ type Store interface {
 	SaveChainStatus(*state.BlockNode, *state.UtxoViewpoint) error
 
 	GetTransaction(hash *types.Hash) (*types.Tx, error)
-	GetEvidence(hash *types.Hash) (*types.Evidence, error)
+	GetEvidence(hash *types.Hash) (*types.Evidence, *types.Tx, int, error)
 }
 
 // BlockStoreState represents the core's db status

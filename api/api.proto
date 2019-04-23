@@ -31,6 +31,16 @@ service APIService {
             get: "/v1/blocks/{id}/verbose/1"
         };
     }
+    rpc GetTransaction (GetTransactionRequest) returns (GetTransactionResponse) {
+        option (google.api.http) = {
+            get: "/v1/transactions/{txid}"
+        };
+    }
+    rpc GetEvidence (GetEvidenceRequest) returns (GetEvidenceResponse) {
+        option (google.api.http) = {
+            get: "/v1/evidences/{evid}"
+        };
+    }
 
 }
 
@@ -140,4 +150,44 @@ message Evidence {
     string  digest       = 2;
     string  source       = 3;
     string  valid_script = 4;
+}
+
+message GetTransactionRequest {
+    string txid = 1;
+}
+
+message GetTransactionResponse {
+    message TxIn {
+        message ValueSource {
+            string    txid  = 1;
+            uint64    index = 2;
+        }
+        ValueSource value_source  = 1;
+        string      redeem_script = 2;
+        string      unlock_script = 3;
+        uint64      sequence      = 4;
+    }
+    message TxOut {
+        uint64 value       = 1;
+        string script_hash = 2;
+    }
+    string            txid       = 1;
+    uint64            version    = 2;
+    repeated TxIn     inputs     = 3;
+    repeated TxOut    outputs    = 4;
+    repeated Evidence evidences  = 5;
+    uint64            lock_time  = 6;
+}
+
+message GetEvidenceRequest {
+    string evid = 1;
+}
+
+message GetEvidenceResponse {
+    string  txid         = 1;
+    uint64  index        = 2;
+    string  evid         = 3;
+    string  digest       = 4;
+    string  source       = 5;
+    string  valid_script = 6;
 }

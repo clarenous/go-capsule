@@ -102,7 +102,8 @@ out:
 				time.Sleep(time.Second * 2)
 
 			} else {
-				log.WithField("height", block.BlockHeader.Height).Errorf("Miner fail on ProcessBlock, %v", err)
+				// TODO : recover this
+				//log.WithField("height", block.BlockHeader.Height).Errorf("Miner fail on ProcessBlock, %v", err)
 			}
 		}
 	}

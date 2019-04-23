@@ -2,6 +2,7 @@ package leveldb
 
 import (
 	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 	"github.com/clarenous/go-capsule/protocol/types"
 	dbm "github.com/tendermint/tmlibs/db"
@@ -19,7 +20,7 @@ func (s *Store) GetTransaction(hash *types.Hash) (*types.Tx, error) {
 
 	iter := dbm.IteratePrefix(s.db, prefix[:])
 	for iter.Valid() {
-		key := iter.Value()
+		key := iter.Key()
 		loc := types.NewTxLocFromBytes(key[3:])
 		blkBytes := s.db.Get(calcBlockKey(&loc.BlockHash))
 		if blkBytes != nil && len(blkBytes) >= int(loc.Offset+loc.Length) {
@@ -52,7 +53,7 @@ func (s *Store) saveTxLoc(batch dbm.Batch, loc *types.TxLoc) {
 	batch.Set(b83[:], []byte{})
 }
 
-func (s *Store) GetEvidence(hash *types.Hash) (*types.Evidence, error) {
+func (s *Store) GetEvidence(hash *types.Hash) (*types.Evidence, *types.Tx, int, error) {
 	var prefix [38]byte
 	var getIndex = func(b8 []byte) int {
 		return int(binary.LittleEndian.Uint64(b8))
@@ -62,19 +63,20 @@ func (s *Store) GetEvidence(hash *types.Hash) (*types.Evidence, error) {
 
 	iter := dbm.IteratePrefix(s.db, prefix[:])
 	for iter.Valid() {
-		if key := iter.Value(); len(key) == 78 {
+		if key := iter.Key(); len(key) == 78 {
+			fmt.Println("evidence key", key, hex.EncodeToString(key), string(key))
 			var txHash types.Hash
 			copy(txHash[:], key[38:70])
-			if tx, err := s.GetTransaction(&txHash); err != nil {
+			if tx, err := s.GetTransaction(&txHash); err == nil {
 				if index := getIndex(key[70:78]); len(tx.Evidences) > index {
-					return &tx.Evidences[index], nil
+					return &tx.Evidences[index], tx, index, nil
 				}
 			}
 		}
 		iter.Next()
 	}
 
-	return nil, fmt.Errorf("fail to find evidence by hash %s", hash.String())
+	return nil, nil, 0, fmt.Errorf("fail to find evidence by hash %s", hash.String())
 }
 
 // saveEvidLoc saves evidence loc into batch
