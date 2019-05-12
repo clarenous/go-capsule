@@ -60,7 +60,9 @@ func (h *Hash) UnmarshalJSON(b []byte) error {
 
 // Bytes returns the byte representation
 func (h Hash) Bytes() []byte {
-	return h[:]
+	var b32 [32]byte
+	copy(b32[:], h[:])
+	return b32[:]
 }
 
 func (h Hash) String() string {

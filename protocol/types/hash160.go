@@ -59,6 +59,14 @@ func (h Hash160) Bytes() []byte {
 	return h[:]
 }
 
+func (h *Hash160) SetBytes(bs []byte) *Hash160 {
+	var hp Hash160
+	copy(hp[:], bs)
+
+	*h = hp
+	return h
+}
+
 func (h Hash160) String() string {
 	return hex.EncodeToString(h[:])
 }

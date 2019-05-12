@@ -42,6 +42,54 @@ service APIService {
         };
     }
 
+    rpc GetWalletStatus (google.protobuf.Empty) returns (GetWalletStatusResponse) {
+        option (google.api.http) = {
+            get: "/v1/wallet/status"
+        };
+    }
+    rpc GetWalletAddresses (google.protobuf.Empty) returns (GetWalletAddressesResponse) {
+        option (google.api.http) = {
+            get: "/v1/wallet/addresses"
+        };
+    }
+    rpc GetWalletBalance (google.protobuf.Empty) returns (GetWalletBalanceResponse) {
+        option (google.api.http) = {
+            get: "/v1/wallet/balance"
+        };
+    }
+    rpc GetWalletTransactions (google.protobuf.Empty) returns (GetWalletTransactionsResponse )
+    {
+        option (google.api.http) = {
+            get: "/v1/wallet/transactions"
+        };
+    }
+    rpc GetWalletEvidences (google.protobuf.Empty) returns (GetWalletEvidencesResponse) {
+        option (google.api.http) = {
+            get: "/v1/wallet/evidences"
+        };
+    }
+    rpc CreateAddress (CreateAddressRequest) returns (CreateAddressResponse) {
+        option (google.api.http) = {
+            post: "/v1/wallet/addresses"
+        };
+    }
+    rpc CreateTransaction (CreateTransactionRequest) returns (CreateTransactionResponse) {
+        option (google.api.http) = {
+            post: "/v1/wallet/transactions/creating"
+        };
+    }
+    rpc SendTransaction (SendTransactionRequest) returns (SendTransactionResponse) {
+        option (google.api.http) = {
+            post: "/v1/wallet/transactions/sending"
+        };
+    }
+
+    rpc GetClientStatus (google.protobuf.Empty) returns (GetClientStatusResponse) {
+        option (google.api.http) = {
+            post: "/v1/client/status"
+        };
+    }
+
 }
 
 message GetBestBlockResponse {
@@ -190,4 +238,71 @@ message GetEvidenceResponse {
     string  digest       = 4;
     string  source       = 5;
     string  valid_script = 6;
+}
+
+message GetWalletStatusResponse {
+    uint32 tx_count   = 1;
+    uint32 evid_count = 2;
+    uint64 balance    = 3;
+}
+
+message GetWalletAddressesResponse {
+    message Address {
+        string address = 1;
+        float  balance = 2;
+    }
+    repeated Address addresses = 1;
+}
+
+message GetWalletBalanceResponse {
+    float balance = 1;
+}
+
+message GetWalletTransactionsResponse {
+    repeated string transactions = 1;
+}
+
+message GetWalletEvidencesResponse {
+    repeated string evidences = 1;
+}
+
+message CreateAddressRequest {
+    string password = 1;
+}
+
+message CreateAddressResponse {
+    string address = 1;
+    bool   success = 2;
+    string error   = 3;
+}
+
+message CreateTransactionRequest {
+    string to_address  = 1;
+    float  value       = 2;
+    string file        = 3;
+    string digest_mode = 4;
+}
+
+message CreateTransactionResponse {
+    string hex     = 1;
+    bool   success = 2;
+    string error   = 3;
+}
+
+message SendTransactionRequest {
+    string hex      = 1;
+    string password = 2;
+}
+
+message SendTransactionResponse {
+    string txid    = 1;
+    bool   success = 2;
+    string error   = 3;
+}
+
+message GetClientStatusResponse {
+    uint64 local_best_height = 1;
+    uint64 known_best_height = 2;
+    bool   mining            = 3;
+    bool   peer_listening    = 4;
 }
