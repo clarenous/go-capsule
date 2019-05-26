@@ -183,11 +183,9 @@ const (
 
 	OP_SHA256        Op = 0xa8
 	OP_SHA3          Op = 0xaa
-	OP_HASH160       Op = 0xab
+	OP_RIPEMD160     Op = 0xab
 	OP_CHECKSIG      Op = 0xac
 	OP_CHECKMULTISIG Op = 0xad
 	OP_CHECKDIGEST   Op = 0xae
-
-	OP_DATASEG Op = 0xf0
-	OP_CODESEG Op = 0xf1
+	OP_ENSUREVALID   Op = 0xaf
 )
